@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
+import Nav from '../components/Nav'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -54,7 +55,6 @@ export default function SettingsPage() {
       return
     }
 
-    // check if taken (by someone else)
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
@@ -83,31 +83,27 @@ export default function SettingsPage() {
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
 
   return (
-    <div style={{ maxWidth: 480, margin: '60px auto', fontFamily: 'sans-serif', padding: 20 }}>
-      <h2>Settings</h2>
+    <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
+      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Settings</h1>
 
-      <div style={{ display: 'flex', gap: 16, margin: '12px 0 20px', fontSize: 14 }}>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/friends">Friends</a>
-        <a href="/planner">Planner</a>
-        <a href="/settings">Settings</a>
+      <Nav />
+
+      <div className="glass-card" style={{ marginTop: 20 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+          Your current username: <b style={{ color: 'var(--text)' }}>{currentUsername}</b> — this is what friends search for to add you.
+        </p>
+
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="new username"
+          />
+          <button type="submit">Save username</button>
+        </form>
+
+        {message && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{message}</p>}
       </div>
-
-      <p style={{ fontSize: 13, color: '#888' }}>
-        Your current username: <b>{currentUsername}</b> — this is what friends search for to add you.
-      </p>
-
-      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
-        <input
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="new username"
-          style={{ padding: 10 }}
-        />
-        <button type="submit" style={{ padding: 10 }}>Save username</button>
-      </form>
-
-      {message && <p style={{ marginTop: 12 }}>{message}</p>}
     </div>
   )
 }

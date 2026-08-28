@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
+import Nav from '../components/Nav'
 
 function getUrgency(dueDate) {
   if (!dueDate) return { level: 'none', label: '', days: Infinity }
@@ -19,12 +20,12 @@ function getUrgency(dueDate) {
 }
 
 const urgencyColors = {
-  overdue: '#c0392b',
-  today: '#e67e22',
-  urgent: '#e67e22',
-  soon: '#f1c40f',
-  later: '#888',
-  none: '#ccc',
+  overdue: 'var(--danger)',
+  today: '#F5A623',
+  urgent: '#F5A623',
+  soon: '#E8D34D',
+  later: 'var(--text-muted)',
+  none: 'var(--text-muted)',
 }
 
 export default function PlannerPage() {
@@ -130,134 +131,163 @@ export default function PlannerPage() {
   const suggested = activeTopLevel[0]
 
   return (
-    <div style={{ maxWidth: 480, margin: '60px auto', fontFamily: 'sans-serif', padding: 20 }}>
-      <h2>Planner</h2>
+    <div className="page-fade" style={{ maxWidth: 560, margin: '48px auto', padding: '0 20px' }}>
+      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Planner</h1>
 
-      <div style={{ display: 'flex', gap: 16, margin: '12px 0 20px', fontSize: 14 }}>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/friends">Friends</a>
-        <a href="/planner">Planner</a>
-        <a href="/settings">Settings</a>
+      <Nav />
+
+      {suggested && (
+        <div className="glass-card" style={{
+          borderColor: urgencyColors[suggested.urgency.level],
+          boxShadow: `0 0 32px color-mix(in srgb, ${urgencyColors[suggested.urgency.level]} 25%, transparent), inset 0 1px 0 var(--glass-highlight)`,
+          marginBottom: 24,
+        }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>
+            Do this next
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, margin: '8px 0 4px', fontFamily: 'Space Grotesk, sans-serif' }}>
+            {suggested.title}
+          </div>
+          <div className="mono" style={{ fontSize: 13, color: urgencyColors[suggested.urgency.level], fontWeight: 600 }}>
+            {suggested.course && `${suggested.course} — `}
+            {suggested.urgency.label || 'No due date'}
+          </div>
+        </div>
+      )}
+
+      <div className="glass-card" style={{ marginBottom: 20 }}>
+        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="task title"
+            required
+          />
+          <input
+            value={course}
+            onChange={(e) => setCourse(e.target.value)}
+            placeholder="course (optional)"
+          />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+          <button type="submit">Add task</button>
+        </form>
       </div>
 
-    {suggested && (
-    <div className="glass-card" style={{
-        borderColor: urgencyColors[suggested.urgency.level],
-        boxShadow: `0 0 24px ${urgencyColors[suggested.urgency.level]}33`,
-        marginBottom: 24,
-    }}>
-    <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
-      Do this next
-    </div>
-    <div style={{ fontSize: 20, fontWeight: 700, margin: '6px 0', fontFamily: 'Space Grotesk, sans-serif' }}>
-      {suggested.title}
-    </div>
-    <div style={{ fontSize: 13, color: urgencyColors[suggested.urgency.level], fontWeight: 600 }}>
-      {suggested.course && `${suggested.course} — `}
-      {suggested.urgency.label || 'No due date'}
-    </div>
-  </div>
-    )}
-
-      <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="task title"
-          style={{ padding: 8 }}
-          required
-        />
-        <input
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          placeholder="course (optional)"
-          style={{ padding: 8 }}
-        />
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          style={{ padding: 8 }}
-        />
-        <button type="submit" style={{ padding: 8 }}>Add task</button>
-      </form>
-
-      <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+      <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, color: 'var(--text-muted)' }}>
         <input
           type="checkbox"
           checked={showCompleted}
           onChange={(e) => setShowCompleted(e.target.checked)}
+          style={{ width: 'auto' }}
         />
         Show completed
       </label>
 
-      {visibleTopLevel.length === 0 && <p style={{ fontSize: 13, color: '#888' }}>No tasks yet</p>}
+      <div className="glass-card">
+        {visibleTopLevel.length === 0 && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No tasks yet</p>}
 
-      {visibleTopLevel.map((t) => {
-        const subtasks = getSubtasks(t.id)
-        const isExpanded = expanded[t.id]
+        {visibleTopLevel.map((t, i) => {
+          const subtasks = getSubtasks(t.id)
+          const isExpanded = expanded[t.id]
 
-        return (
-          <div key={t.id} style={{ padding: '8px 0', borderBottom: '1px solid #eee' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: t.completed ? 0.5 : 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="checkbox"
-                  checked={t.completed}
-                  onChange={() => toggleComplete(t.id, t.completed)}
-                  style={{ marginRight: 8 }}
-                />
-                <span
-                  onClick={() => setExpanded((prev) => ({ ...prev, [t.id]: !prev[t.id] }))}
-                  style={{ textDecoration: t.completed ? 'line-through' : 'none', cursor: 'pointer' }}
-                >
-                  {t.title} {subtasks.length > 0 && <span style={{ fontSize: 10, color: '#888' }}>({subtasks.filter(s => s.completed).length}/{subtasks.length})</span>}
-                </span>
-                {t.course && <span style={{ fontSize: 11, color: '#888', marginLeft: 8 }}>{t.course}</span>}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {t.due_date && (
-                  <span style={{ fontSize: 11, color: urgencyColors[t.urgency.level], fontWeight: 600 }}>
-                    {t.urgency.label}
-                  </span>
-                )}
-                <button onClick={() => setExpanded((prev) => ({ ...prev, [t.id]: !prev[t.id] }))} style={{ fontSize: 11 }}>
-                  {isExpanded ? '▾' : '▸'}
-                </button>
-                <button onClick={() => deleteTask(t.id)} style={{ fontSize: 11 }}>×</button>
-              </div>
-            </div>
-
-            {isExpanded && (
-              <div style={{ marginLeft: 24, marginTop: 6, paddingLeft: 10, borderLeft: '1px dotted #ccc' }}>
-                {subtasks.map((s) => (
-                  <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', opacity: s.completed ? 0.5 : 1 }}>
-                    <div>
-                      <input
-                        type="checkbox"
-                        checked={s.completed}
-                        onChange={() => toggleComplete(s.id, s.completed)}
-                        style={{ marginRight: 8 }}
-                      />
-                      <span style={{ fontSize: 13, textDecoration: s.completed ? 'line-through' : 'none' }}>{s.title}</span>
-                    </div>
-                    <button onClick={() => deleteTask(s.id)} style={{ fontSize: 10 }}>×</button>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+          return (
+            <div key={t.id} style={{
+              padding: '14px 0',
+              borderBottom: i < visibleTopLevel.length - 1 ? '1px solid var(--glass-border)' : 'none',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: t.completed ? 0.45 : 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <input
-                    value={subtaskDrafts[t.id] || ''}
-                    onChange={(e) => setSubtaskDrafts((prev) => ({ ...prev, [t.id]: e.target.value }))}
-                    placeholder="add a step"
-                    style={{ flex: 1, fontSize: 12, padding: 6 }}
+                    type="checkbox"
+                    checked={t.completed}
+                    onChange={() => toggleComplete(t.id, t.completed)}
+                    style={{ width: 'auto' }}
                   />
-                  <button onClick={() => addSubtask(t.id)} style={{ fontSize: 11 }}>+</button>
+                  <span
+                    onClick={() => setExpanded((prev) => ({ ...prev, [t.id]: !prev[t.id] }))}
+                    style={{
+                      textDecoration: t.completed ? 'line-through' : 'none',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t.title}
+                    {subtasks.length > 0 && (
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>
+                        ({subtasks.filter(s => s.completed).length}/{subtasks.length})
+                      </span>
+                    )}
+                  </span>
+                  {t.course && (
+                    <span style={{
+                      fontSize: 11,
+                      color: 'var(--accent)',
+                      background: 'rgba(124, 92, 255, 0.15)',
+                      padding: '2px 8px',
+                      borderRadius: 20,
+                    }}>
+                      {t.course}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {t.due_date && (
+                    <span className="mono" style={{ fontSize: 11, color: urgencyColors[t.urgency.level], fontWeight: 600 }}>
+                      {t.urgency.label}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setExpanded((prev) => ({ ...prev, [t.id]: !prev[t.id] }))}
+                    className="icon-button"
+                    style={{ fontSize: 11, padding: '4px 8px' }}
+                  >
+                    {isExpanded ? '▾' : '▸'}
+                  </button>
+                  <button
+                    onClick={() => deleteTask(t.id)}
+                    className="icon-button"
+                    style={{ fontSize: 11, padding: '4px 8px' }}
+                  >
+                    ×
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
-        )
-      })}
+
+              {isExpanded && (
+                <div style={{ marginLeft: 30, marginTop: 10, paddingLeft: 14, borderLeft: '2px solid var(--glass-border)' }}>
+                  {subtasks.map((s) => (
+                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', opacity: s.completed ? 0.45 : 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={s.completed}
+                          onChange={() => toggleComplete(s.id, s.completed)}
+                          style={{ width: 'auto' }}
+                        />
+                        <span style={{ fontSize: 13, textDecoration: s.completed ? 'line-through' : 'none' }}>{s.title}</span>
+                      </div>
+                      <button onClick={() => deleteTask(s.id)} className="icon-button" style={{ fontSize: 10, padding: '2px 6px' }}>×</button>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <input
+                      value={subtaskDrafts[t.id] || ''}
+                      onChange={(e) => setSubtaskDrafts((prev) => ({ ...prev, [t.id]: e.target.value }))}
+                      placeholder="add a step"
+                      style={{ flex: 1, fontSize: 12, padding: 8 }}
+                    />
+                    <button onClick={() => addSubtask(t.id)} style={{ fontSize: 11, padding: '8px 14px' }}>+</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
