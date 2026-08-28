@@ -101,6 +101,13 @@ export default function FriendsPage() {
     <div style={{ maxWidth: 480, margin: '60px auto', fontFamily: 'sans-serif', padding: 20 }}>
       <h2>Friends</h2>
 
+      <div style={{ display: 'flex', gap: 16, margin: '12px 0 20px', fontSize: 14 }}>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/friends">Friends</a>
+        <a href="/planner">Planner</a>
+        <a href="/settings">Settings</a>
+        </div>
+
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input
           value={searchTerm}
