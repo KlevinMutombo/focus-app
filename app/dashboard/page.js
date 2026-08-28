@@ -134,7 +134,16 @@ export default function Dashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Hey, {profile?.username}</h2>
         <button onClick={handleLogout} style={{ fontSize: 12 }}>Log out</button>
-      </div>
+    </div>
+
+    <div style={{ display: 'flex', gap: 16, margin: '12px 0 20px', fontSize: 14 }}>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/friends">Friends</a>
+        <a href="/planner">Planner</a>
+        <a href="/settings">Settings</a>
+    </div>
+
+      
 
       <div style={{ margin: '20px 0', fontSize: 14 }}>
         XP: <b>{profile?.xp}</b> &nbsp; Streak: <b>{profile?.streak}</b>
