@@ -13,7 +13,6 @@ export default function AvatarPage() {
   const [profile, setProfile] = useState(null)
   const [avatars, setAvatars] = useState([])
   const [loading, setLoading] = useState(true)
-  const [previewSpecies, setPreviewSpecies] = useState(null)
 
   useEffect(() => {
     async function load() {
@@ -64,26 +63,26 @@ export default function AvatarPage() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 560, margin: '48px auto', padding: '0 20px' }}>
-      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Avatar</h1>
+      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Avatar</h1>
 
       <Nav />
 
-      <div className="glass-card" style={{ marginTop: 20, textAlign: 'center', padding: 32 }}>
+      <div className="card" style={{ textAlign: 'center', padding: 32 }}>
         {currentAvatar ? (
           <Character color={currentAvatar.color} color2={currentAvatar.color2} species={currentAvatar.species} size={100} />
         ) : (
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>No avatar selected yet</div>
         )}
         {currentAvatar && (
-          <div style={{ marginTop: 12, fontFamily: 'Space Grotesk, sans-serif', fontSize: 18, fontWeight: 700 }}>
+          <div style={{ marginTop: 12, fontFamily: 'Fraunces, serif', fontSize: 18, fontWeight: 600 }}>
             {currentAvatar.name}
           </div>
         )}
       </div>
 
       {['starter', 'og', 'earned'].map((tier) => (
-        <div key={tier} className="glass-card" style={{ marginTop: 16 }}>
-          <h4 style={{ marginBottom: 14 }}>{tierLabels[tier]}</h4>
+        <div key={tier} className="card" style={{ marginTop: 16 }}>
+          <h4 style={{ fontSize: 16, marginBottom: 14 }}>{tierLabels[tier]}</h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 14 }}>
             {grouped[tier].map((a) => {
               const unlocked = isUnlocked(a)
@@ -98,8 +97,8 @@ export default function AvatarPage() {
                     cursor: unlocked ? 'pointer' : 'not-allowed',
                     textAlign: 'center',
                     padding: 10,
-                    borderRadius: 14,
-                    background: selected ? 'rgba(124, 92, 255, 0.15)' : 'transparent',
+                    borderRadius: 8,
+                    background: selected ? 'var(--surface-raised)' : 'transparent',
                     border: selected ? '1px solid var(--accent)' : '1px solid transparent',
                   }}
                 >
@@ -114,7 +113,7 @@ export default function AvatarPage() {
                   </div>
                   {!unlocked && a.tier === 'earned' && (
                     <div style={{ marginTop: 4 }}>
-                      <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ height: 4, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${progress}%`, background: 'var(--accent)' }} />
                       </div>
                       <div className="mono" style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>

@@ -86,17 +86,17 @@ export default function CalendarPage() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 720, margin: '48px auto', padding: '0 20px' }}>
-      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Calendar</h1>
+      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Calendar</h1>
 
       <Nav />
 
-      <div className="glass-card">
+      <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <button onClick={() => changeMonth(-1)} className="icon-button">←</button>
-          <h3 style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+          <button onClick={() => changeMonth(-1)} className="btn-secondary">←</button>
+          <h3 style={{ fontSize: 18 }}>
             {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h3>
-          <button onClick={() => changeMonth(1)} className="icon-button">→</button>
+          <button onClick={() => changeMonth(1)} className="btn-secondary">→</button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>
@@ -122,9 +122,9 @@ export default function CalendarPage() {
                 style={{
                   minHeight: 64,
                   padding: 6,
-                  borderRadius: 10,
+                  borderRadius: 6,
                   cursor: 'pointer',
-                  background: isSelected ? 'rgba(124, 92, 255, 0.18)' : 'transparent',
+                  background: isSelected ? 'var(--surface-raised)' : 'transparent',
                   border: isToday ? '1px solid var(--accent)' : '1px solid transparent',
                   transition: 'background 0.15s ease',
                 }}
@@ -138,7 +138,7 @@ export default function CalendarPage() {
                     marginTop: 2,
                     padding: '2px 4px',
                     borderRadius: 4,
-                    background: t.completed ? 'rgba(74, 222, 158, 0.2)' : 'rgba(124, 92, 255, 0.2)',
+                    background: t.completed ? 'rgba(95, 184, 138, 0.15)' : 'rgba(201, 138, 75, 0.15)',
                     color: t.completed ? 'var(--success)' : 'var(--accent)',
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
@@ -159,11 +159,11 @@ export default function CalendarPage() {
       </div>
 
       {selectedDay && (
-        <div className="glass-card" style={{ marginTop: 16 }}>
-          <h4 style={{ marginBottom: 12 }}>{selectedDay}</h4>
+        <div className="card" style={{ marginTop: 16 }}>
+          <h4 style={{ fontSize: 16, marginBottom: 12 }}>{selectedDay}</h4>
 
           {(tasksByDate[selectedDay] || []).map((t) => (
-            <div key={t.id} style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--glass-border)' }}>
+            <div key={t.id} style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
               {t.title} {t.course && <span style={{ color: 'var(--text-muted)' }}>— {t.course}</span>}
             </div>
           ))}

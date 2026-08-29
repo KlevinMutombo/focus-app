@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Anchor",
-  description: "Stay locked in. Focus sessions, XP, streaks, and a planner that keeps up with your week.",
+  title: "Momenta",
+  description: "Build momentum. Focus sessions, XP, streaks, and a planner that keeps up with your week.",
 };
 
 export default function RootLayout({ children }) {

@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const supabase = createClient()
-  const [mode, setMode] = useState('login')
+  const searchParams = useSearchParams()
+  const [mode, setMode] = useState(searchParams.get('mode') === 'login' ? 'login' : 'signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -87,7 +88,9 @@ export default function LoginPage() {
       if (error) {
         setMessage(error.message)
       } else {
-        router.push('/dashboard')
+        const { data: { user } } = await supabase.auth.getUser()
+        const { data: profileData } = await supabase.from('profiles').select('avatar_id').eq('id', user.id).single()
+        router.push(profileData?.avatar_id ? '/dashboard' : '/onboarding/avatar')
       }
     }
   }
@@ -113,23 +116,23 @@ export default function LoginPage() {
     <div className="page-fade" style={{ maxWidth: 400, margin: '60px auto', padding: '0 20px' }}>
       <a href="/" style={{ display: 'inline-block', marginBottom: 20, fontSize: 13 }}>← Back to home</a>
 
-      <div className="glass-card">
-        <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', marginBottom: 20 }}>
+      <div className="card">
+        <h2 style={{ fontSize: 24, marginBottom: 20 }}>
           {mode === 'signup' ? 'Create your account' : 'Welcome back'}
         </h2>
 
         <button
           onClick={handleGoogleSignIn}
-          className="icon-button"
+          className="btn-secondary"
           style={{ width: '100%', padding: '10px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
         >
           Continue with Google
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0', fontSize: 11, color: 'var(--text-muted)' }}>
-          <div style={{ flex: 1, height: 1, background: 'var(--glass-border)' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           OR
-          <div style={{ flex: 1, height: 1, background: 'var(--glass-border)' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
         </div>
 
         {!forgotMode ? (
@@ -189,7 +192,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setForgotMode(true)}
-                style={{ background: 'none', color: 'var(--text-muted)', fontSize: 12, padding: 0, boxShadow: 'none' }}
+                className="btn-secondary"
+                style={{ fontSize: 12, border: 'none', background: 'none', padding: 0 }}
               >
                 Forgot password?
               </button>
@@ -209,7 +213,8 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setForgotMode(false)}
-              style={{ background: 'none', color: 'var(--text-muted)', fontSize: 12, padding: 0, boxShadow: 'none' }}
+              className="btn-secondary"
+              style={{ fontSize: 12, border: 'none', background: 'none', padding: 0 }}
             >
               Back to login
             </button>
@@ -221,12 +226,21 @@ export default function LoginPage() {
         {!forgotMode && (
           <button
             onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setMessage('') }}
-            style={{ marginTop: 16, background: 'none', color: 'var(--text-muted)', fontSize: 13, padding: 0, boxShadow: 'none', textDecoration: 'underline' }}
+            className="btn-secondary"
+            style={{ marginTop: 16, fontSize: 13, border: 'none', background: 'none', padding: 0, textDecoration: 'underline' }}
           >
             {mode === 'signup' ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
           </button>
         )}
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40 }}>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }

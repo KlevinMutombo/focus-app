@@ -1,9 +1,9 @@
 export default function Nav() {
   return (
-    <div className="glass-card" style={{
+    <div className="card" style={{
       display: 'flex',
-      gap: 20,
-      padding: '14px 20px',
+      gap: 24,
+      padding: '12px 18px',
       marginBottom: 28,
       flexWrap: 'wrap',
     }}>

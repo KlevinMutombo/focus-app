@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
+import Character from '../components/Character'
 
 export default function FriendsPage() {
   const router = useRouter()
   const supabase = createClient()
   const [user, setUser] = useState(null)
+  const [myAvatar, setMyAvatar] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [pending, setPending] = useState([])
@@ -25,6 +27,8 @@ export default function FriendsPage() {
         return
       }
       setUser(user)
+      const { data: myProfile } = await supabase.from('profiles').select('avatars(color, color2, species)').eq('id', user.id).single()
+      setMyAvatar(myProfile?.avatars)
       await loadPending(user.id)
       await loadFriends(user.id)
       setLoading(false)
@@ -50,19 +54,19 @@ export default function FriendsPage() {
   async function loadFriends(userId) {
     const { data: sent } = await supabase
       .from('friendships')
-      .select('id, friend_id, profiles!friendships_friend_id_fkey(id, username, xp)')
+      .select('id, friend_id, profiles!friendships_friend_id_fkey(id, username, xp, avatars(color, color2, species))')
       .eq('user_id', userId)
       .eq('status', 'accepted')
 
     const { data: received } = await supabase
       .from('friendships')
-      .select('id, user_id, profiles!friendships_user_id_fkey(id, username, xp)')
+      .select('id, user_id, profiles!friendships_user_id_fkey(id, username, xp, avatars(color, color2, species))')
       .eq('friend_id', userId)
       .eq('status', 'accepted')
 
     const combined = [
-      ...(sent || []).map(f => ({ id: f.profiles.id, username: f.profiles.username, xp: f.profiles.xp })),
-      ...(received || []).map(f => ({ id: f.profiles.id, username: f.profiles.username, xp: f.profiles.xp })),
+      ...(sent || []).map(f => ({ id: f.profiles.id, username: f.profiles.username, xp: f.profiles.xp, avatars: f.profiles.avatars })),
+      ...(received || []).map(f => ({ id: f.profiles.id, username: f.profiles.username, xp: f.profiles.xp, avatars: f.profiles.avatars })),
     ]
     setFriends(combined)
   }
@@ -70,12 +74,12 @@ export default function FriendsPage() {
   async function buildLeaderboard() {
     if (!user) return
 
-    const allPeople = [{ id: user.id, username: 'You', xp: 0 }, ...friends]
+    const allPeople = [{ id: user.id, username: 'You', xp: 0, avatars: myAvatar }, ...friends]
 
     if (period === 'all') {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, username, xp')
+        .select('id, username, xp, avatars(color, color2, species)')
         .in('id', allPeople.map(p => p.id))
       setLeaderboard((profiles || []).sort((a, b) => b.xp - a.xp))
       return
@@ -149,11 +153,11 @@ export default function FriendsPage() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
-      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Friends</h1>
+      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Friends</h1>
 
       <Nav />
 
-      <div className="glass-card" style={{ marginTop: 20 }}>
+      <div className="card" style={{ marginTop: 20 }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <input
             value={searchTerm}
@@ -173,29 +177,29 @@ export default function FriendsPage() {
       </div>
 
       {pending.length > 0 && (
-        <div className="glass-card" style={{ marginTop: 16 }}>
-          <h4 style={{ marginBottom: 12 }}>Pending requests</h4>
+        <div className="card" style={{ marginTop: 16 }}>
+          <h4 style={{ fontSize: 16, marginBottom: 12 }}>Pending requests</h4>
           {pending.map((p) => (
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
               <span>{p.profiles.username}</span>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => acceptRequest(p.id)} style={{ padding: '4px 10px', fontSize: 12 }}>Accept</button>
-                <button onClick={() => declineRequest(p.id)} className="icon-button" style={{ padding: '4px 10px', fontSize: 12 }}>Decline</button>
+                <button onClick={() => declineRequest(p.id)} className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12 }}>Decline</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="glass-card" style={{ marginTop: 16 }}>
+      <div className="card" style={{ marginTop: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <h4>Leaderboard</h4>
+          <h4 style={{ fontSize: 16 }}>Leaderboard</h4>
           <div style={{ display: 'flex', gap: 4 }}>
             {['daily', 'weekly', 'all'].map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={period === p ? '' : 'icon-button'}
+                className={period === p ? '' : 'btn-secondary'}
                 style={{ fontSize: 11, padding: '4px 10px' }}
               >
                 {p === 'all' ? 'All-time' : p.charAt(0).toUpperCase() + p.slice(1)}
@@ -206,8 +210,12 @@ export default function FriendsPage() {
 
         {leaderboard.length === 0 && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No friends yet — search above to add some</p>}
         {leaderboard.map((f, i) => (
-          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--glass-border)', fontSize: 13 }}>
-            <span>#{i + 1} {f.username}</span>
+          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="mono" style={{ color: 'var(--text-muted)', width: 20 }}>#{i + 1}</span>
+              {f.avatars && <Character color={f.avatars.color} color2={f.avatars.color2} species={f.avatars.species} size={24} />}
+              <span>{f.username}</span>
+            </div>
             <span className="mono" style={{ color: 'var(--accent)' }}>{f.xp} xp</span>
           </div>
         ))}

@@ -89,7 +89,7 @@ export default function NotificationBell() {
           {notifications.map((n) => (
             <div key={`${n.type}-${n.id}`} style={{ fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--glass-border)' }}>
               {n.type === 'kudos' ? (
-                <span><b>{n.profiles?.username}</b> gave you kudos 👏</span>
+                <span><b>{n.profiles?.username}</b> boosted you 🚀</span>
               ) : (
                 <span><b>{n.profiles?.username}</b> commented: "{n.content}"</span>
               )}

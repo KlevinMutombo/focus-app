@@ -44,6 +44,12 @@ export default function Dashboard() {
         .select('*, avatarInfo:avatars(color, color2, species)')
         .eq('id', user.id)
         .single()
+
+      if (!profileData?.avatar_id) {
+        router.push('/onboarding/avatar')
+        return
+      }
+
       setProfile(profileData)
 
       await loadSessions(user.id)
@@ -201,7 +207,7 @@ export default function Dashboard() {
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
 
   return (
-    <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
+    <div className="page-fade" style={{ maxWidth: 520, margin: '48px auto', padding: '0 20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {profile?.avatarInfo && (
@@ -209,13 +215,13 @@ export default function Dashboard() {
               color={profile.avatarInfo.color}
               color2={profile.avatarInfo.color2}
               species={profile.avatarInfo.species}
-              size={48}
+              size={44}
               celebrate={!!justFinished}
             />
           )}
-          <h1 className="gradient-text" style={{ fontSize: 32 }}>Hey, {profile?.username}</h1>
+          <h1 style={{ fontSize: 28 }}>Hey, {profile?.username}</h1>
         </div>
-        <button onClick={handleLogout}>Log out</button>
+        <button onClick={handleLogout} className="btn-secondary">Log out</button>
       </div>
 
       <Nav />
@@ -226,16 +232,17 @@ export default function Dashboard() {
         const hadPenalty = justFinished.distractions > 0 && penalty > 0
 
         return (
-          <div className="glass-card" style={{
+          <div className="card-raised" style={{
             marginTop: 20,
             textAlign: 'center',
             borderColor: 'var(--accent)',
-            boxShadow: '0 0 32px rgba(124, 92, 255, 0.3)',
           }}>
-            <div style={{ fontSize: 28, marginBottom: 4 }}>🎉</div>
-            <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', marginBottom: 10 }}>Nice work!</h3>
+            <div style={{ fontSize: 11, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600, marginBottom: 8 }}>
+              Session complete
+            </div>
+            <h3 style={{ fontSize: 22, marginBottom: 12 }}>Nice work</h3>
 
-            <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'left', maxWidth: 220, margin: '0 auto 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'left', maxWidth: 220, margin: '0 auto 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Focused time</span>
                 <span>{justFinished.minutes}m</span>
@@ -250,55 +257,56 @@ export default function Dashboard() {
                   <span>-{penalty}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--glass-border)', paddingTop: 4, marginTop: 2, color: 'var(--accent)', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 6, marginTop: 4, color: 'var(--text)', fontWeight: 700 }}>
                 <span>Total XP</span>
-                <span>+{justFinished.xp_earned}</span>
+                <span style={{ color: 'var(--accent)' }}>+{justFinished.xp_earned}</span>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button onClick={shareSession}>Share to feed</button>
-              <button onClick={dismissShare} className="icon-button">Keep private</button>
+              <button onClick={dismissShare} className="btn-secondary">Keep private</button>
             </div>
           </div>
         )
       })()}
 
-      <div className="mono" style={{ margin: '20px 0', fontSize: 14, color: 'var(--text-muted)' }}>
-        XP: <b style={{ color: 'var(--accent)' }}>{profile?.xp}</b> &nbsp; Streak: <b style={{ color: 'var(--accent)' }}>{profile?.streak}</b>
+      <div className="mono" style={{ margin: '20px 0', fontSize: 13, color: 'var(--text-muted)', display: 'flex', gap: 20 }}>
+        <span>XP <b style={{ color: 'var(--text)' }}>{profile?.xp}</b></span>
+        <span>Streak <b style={{ color: 'var(--text)' }}>{profile?.streak}</b></span>
       </div>
 
-      <div className="glass-card" style={{ textAlign: 'center' }}>
+      <div className="card" style={{ textAlign: 'center' }}>
         {!running && (
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="what are you working on?"
-            style={{ width: '100%', marginBottom: 16 }}
+            style={{ width: '100%', marginBottom: 20 }}
           />
         )}
-        <div className="mono" style={{ fontSize: 48, fontWeight: 700 }}>{fmtTime(seconds)}</div>
+        <div className="mono" style={{ fontSize: 44, fontWeight: 600 }}>{fmtTime(seconds)}</div>
         {running && distractions > 0 && (
-          <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>left the tab {distractions}x</div>
+          <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 6 }}>left the tab {distractions}x</div>
         )}
-        <div style={{ marginTop: 16 }}>
+        <div style={{ marginTop: 18 }}>
           {!running ? (
-            <button onClick={startSession} style={{ padding: '10px 24px' }}>Start session</button>
+            <button onClick={startSession} style={{ padding: '11px 28px' }}>Start session</button>
           ) : (
-            <button onClick={endSession} style={{ padding: '10px 24px' }}>End session</button>
+            <button onClick={endSession} style={{ padding: '11px 28px' }}>End session</button>
           )}
         </div>
       </div>
 
-      <div className="glass-card" style={{ marginTop: 16 }}>
-        <h4 style={{ marginBottom: 12 }}>Recent sessions</h4>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h4 style={{ fontSize: 16, marginBottom: 14 }}>Recent sessions</h4>
         {sessions.length === 0 && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No sessions yet</p>}
         {sessions.map((s) => {
           const post = postsBySession[s.id]
           const isExpanded = expandedSession === s.id
 
           return (
-            <div key={s.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--glass-border)' }}>
+            <div key={s.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span
@@ -315,7 +323,7 @@ export default function Dashboard() {
                 <span className="mono" style={{ color: 'var(--accent)' }}>+{s.xp_earned} xp</span>
                 <button
                   onClick={() => deleteSession(s.id, s.xp_earned)}
-                  className="icon-button"
+                  className="btn-secondary"
                   style={{ fontSize: 10, padding: '2px 8px', marginLeft: 8 }}
                 >
                   ×
@@ -325,14 +333,14 @@ export default function Dashboard() {
               {isExpanded && post && (
                 <div style={{ marginTop: 8, paddingLeft: 4, fontSize: 12, color: 'var(--text-muted)' }}>
                   <div style={{ marginBottom: 6 }}>
-                    {post.is_private ? '🔒 Private — only you can see this' : `🌍 Public — ${post.kudosCount || 0} kudos, ${post.commentsCount || 0} comments`}
+                    {post.is_private ? 'Private — only you can see this' : `Public — ${post.kudosCount || 0} boosts, ${post.commentsCount || 0} comments`}
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => togglePostPrivacy(s.id)} className="icon-button" style={{ fontSize: 11, padding: '4px 10px' }}>
+                    <button onClick={() => togglePostPrivacy(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
                       {post.is_private ? 'Make public' : 'Make private'}
                     </button>
                     {!post.is_private && (
-                      <button onClick={() => removeFromFeed(s.id)} className="icon-button" style={{ fontSize: 11, padding: '4px 10px' }}>
+                      <button onClick={() => removeFromFeed(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
                         Remove from feed
                       </button>
                     )}

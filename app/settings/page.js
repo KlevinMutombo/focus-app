@@ -84,11 +84,11 @@ export default function SettingsPage() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
-      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Settings</h1>
+      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Settings</h1>
 
       <Nav />
 
-      <div className="glass-card" style={{ marginTop: 20 }}>
+      <div className="card" style={{ marginTop: 20 }}>
         <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
           Your current username: <b style={{ color: 'var(--text)' }}>{currentUsername}</b> — this is what friends search for to add you.
         </p>

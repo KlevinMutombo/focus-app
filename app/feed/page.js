@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
+import Character from '../components/Character'
 
 export default function FeedPage() {
   const router = useRouter()
@@ -32,7 +33,7 @@ export default function FeedPage() {
   async function loadFeed() {
     const { data: postsData } = await supabase
       .from('activity_posts')
-      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles(username)')
+      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles(username, avatars(color, color2, species))')
       .order('created_at', { ascending: false })
       .limit(30)
 
@@ -97,12 +98,12 @@ export default function FeedPage() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
-      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Feed</h1>
+      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Feed</h1>
 
       <Nav />
 
       {posts.length === 0 && (
-        <div className="glass-card" style={{ marginTop: 20 }}>
+        <div className="card" style={{ marginTop: 20 }}>
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             No shared sessions yet — end a focus session and choose "Share to feed" to post here.
           </p>
@@ -116,16 +117,21 @@ export default function FeedPage() {
         const isOwnPrivate = post.user_id === user.id && post.is_private
 
         return (
-          <div key={post.id} className="glass-card" style={{ marginTop: 16 }}>
+          <div key={post.id} className="card" style={{ marginTop: 16 }}>
             <div style={{ fontSize: 14, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span><b>{post.profiles?.username}</b> finished a session</span>
-                {isOwnPrivate && (
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 20 }}>
-                🔒 Only you
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {post.profiles?.avatars && (
+                  <Character color={post.profiles.avatars.color} color2={post.profiles.avatars.color2} species={post.profiles.avatars.species} size={28} />
                 )}
+                <span><b>{post.profiles?.username}</b> finished a session</span>
+              </div>
+              {isOwnPrivate && (
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: 20 }}>
+                  Only you
+                </span>
+              )}
             </div>
-            <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
+            <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>
               {new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {new Date(post.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
             </div>
             <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
@@ -135,10 +141,10 @@ export default function FeedPage() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
               <button
                 onClick={() => toggleKudos(post.id)}
-                className={kudosGiven ? '' : 'icon-button'}
+                className={kudosGiven ? '' : 'btn-secondary'}
                 style={{ fontSize: 12, padding: '5px 12px' }}
               >
-                👏 {kudosCount > 0 ? kudosCount : ''}
+                Boost {kudosCount > 0 ? kudosCount : ''}
               </button>
             </div>
 

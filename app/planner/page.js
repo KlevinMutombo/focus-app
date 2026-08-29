@@ -21,9 +21,9 @@ function getUrgency(dueDate) {
 
 const urgencyColors = {
   overdue: 'var(--danger)',
-  today: '#F5A623',
-  urgent: '#F5A623',
-  soon: '#E8D34D',
+  today: '#C98A4B',
+  urgent: '#C98A4B',
+  soon: '#9C8B4E',
   later: 'var(--text-muted)',
   none: 'var(--text-muted)',
 }
@@ -132,20 +132,19 @@ export default function PlannerPage() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 560, margin: '48px auto', padding: '0 20px' }}>
-      <h1 className="gradient-text" style={{ fontSize: 32, marginBottom: 20 }}>Planner</h1>
+      <h1 style={{ fontSize: 28, marginBottom: 20 }}>Planner</h1>
 
       <Nav />
 
       {suggested && (
-        <div className="glass-card" style={{
+        <div className="card-raised" style={{
           borderColor: urgencyColors[suggested.urgency.level],
-          boxShadow: `0 0 32px color-mix(in srgb, ${urgencyColors[suggested.urgency.level]} 25%, transparent), inset 0 1px 0 var(--glass-highlight)`,
           marginBottom: 24,
         }}>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>
             Do this next
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, margin: '8px 0 4px', fontFamily: 'Space Grotesk, sans-serif' }}>
+          <div style={{ fontSize: 20, fontWeight: 600, margin: '8px 0 4px', fontFamily: 'Fraunces, serif' }}>
             {suggested.title}
           </div>
           <div className="mono" style={{ fontSize: 13, color: urgencyColors[suggested.urgency.level], fontWeight: 600 }}>
@@ -155,7 +154,7 @@ export default function PlannerPage() {
         </div>
       )}
 
-      <div className="glass-card" style={{ marginBottom: 20 }}>
+      <div className="card" style={{ marginBottom: 20 }}>
         <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <input
             value={title}
@@ -187,7 +186,7 @@ export default function PlannerPage() {
         Show completed
       </label>
 
-      <div className="glass-card">
+      <div className="card">
         {visibleTopLevel.length === 0 && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No tasks yet</p>}
 
         {visibleTopLevel.map((t, i) => {
@@ -197,7 +196,7 @@ export default function PlannerPage() {
           return (
             <div key={t.id} style={{
               padding: '14px 0',
-              borderBottom: i < visibleTopLevel.length - 1 ? '1px solid var(--glass-border)' : 'none',
+              borderBottom: i < visibleTopLevel.length - 1 ? '1px solid var(--border)' : 'none',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: t.completed ? 0.45 : 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -226,7 +225,7 @@ export default function PlannerPage() {
                     <span style={{
                       fontSize: 11,
                       color: 'var(--accent)',
-                      background: 'rgba(124, 92, 255, 0.15)',
+                      border: '1px solid var(--border)',
                       padding: '2px 8px',
                       borderRadius: 20,
                     }}>
@@ -242,14 +241,14 @@ export default function PlannerPage() {
                   )}
                   <button
                     onClick={() => setExpanded((prev) => ({ ...prev, [t.id]: !prev[t.id] }))}
-                    className="icon-button"
+                    className="btn-secondary"
                     style={{ fontSize: 11, padding: '4px 8px' }}
                   >
                     {isExpanded ? '▾' : '▸'}
                   </button>
                   <button
                     onClick={() => deleteTask(t.id)}
-                    className="icon-button"
+                    className="btn-secondary"
                     style={{ fontSize: 11, padding: '4px 8px' }}
                   >
                     ×
@@ -258,7 +257,7 @@ export default function PlannerPage() {
               </div>
 
               {isExpanded && (
-                <div style={{ marginLeft: 30, marginTop: 10, paddingLeft: 14, borderLeft: '2px solid var(--glass-border)' }}>
+                <div style={{ marginLeft: 30, marginTop: 10, paddingLeft: 14, borderLeft: '2px solid var(--border)' }}>
                   {subtasks.map((s) => (
                     <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', opacity: s.completed ? 0.45 : 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -270,7 +269,7 @@ export default function PlannerPage() {
                         />
                         <span style={{ fontSize: 13, textDecoration: s.completed ? 'line-through' : 'none' }}>{s.title}</span>
                       </div>
-                      <button onClick={() => deleteTask(s.id)} className="icon-button" style={{ fontSize: 10, padding: '2px 6px' }}>×</button>
+                      <button onClick={() => deleteTask(s.id)} className="btn-secondary" style={{ fontSize: 10, padding: '2px 6px' }}>×</button>
                     </div>
                   ))}
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
