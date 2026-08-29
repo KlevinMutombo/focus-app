@@ -14,6 +14,10 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
 
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordMessage, setPasswordMessage] = useState('')
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -80,6 +84,30 @@ export default function SettingsPage() {
     }
   }
 
+  async function handlePasswordChange(e) {
+    e.preventDefault()
+    setPasswordMessage('')
+
+    if (newPassword.length < 6) {
+      setPasswordMessage('Password must be at least 6 characters.')
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage('Passwords do not match.')
+      return
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+    if (error) {
+      setPasswordMessage(error.message)
+    } else {
+      setPasswordMessage('Password updated successfully.')
+      setNewPassword('')
+      setConfirmNewPassword('')
+    }
+  }
+
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
 
   return (
@@ -89,8 +117,9 @@ export default function SettingsPage() {
       <Nav />
 
       <div className="card" style={{ marginTop: 20 }}>
+        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Username</h4>
         <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          Your current username: <b style={{ color: 'var(--text)' }}>{currentUsername}</b> — this is what friends search for to add you.
+          Current: <b style={{ color: 'var(--text)' }}>{currentUsername}</b> — this is what friends search for to add you.
         </p>
 
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
@@ -103,6 +132,28 @@ export default function SettingsPage() {
         </form>
 
         {message && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{message}</p>}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Password</h4>
+
+        <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="new password"
+          />
+          <input
+            type="password"
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
+            placeholder="confirm new password"
+          />
+          <button type="submit">Update password</button>
+        </form>
+
+        {passwordMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{passwordMessage}</p>}
       </div>
     </div>
   )
