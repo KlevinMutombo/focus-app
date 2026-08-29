@@ -32,7 +32,7 @@ export default function FeedPage() {
   async function loadFeed() {
     const { data: postsData } = await supabase
       .from('activity_posts')
-      .select('id, user_id, created_at, sessions(label, minutes, xp_earned), profiles(username)')
+      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles(username)')
       .order('created_at', { ascending: false })
       .limit(30)
 
@@ -113,17 +113,26 @@ export default function FeedPage() {
         const kudosGiven = (kudosMap[post.id] || []).includes(user.id)
         const kudosCount = (kudosMap[post.id] || []).length
         const postComments = commentsMap[post.id] || []
+        const isOwnPrivate = post.user_id === user.id && post.is_private
 
         return (
           <div key={post.id} className="glass-card" style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 14, marginBottom: 4 }}>
-              <b>{post.profiles?.username}</b> finished a session
+            <div style={{ fontSize: 14, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span><b>{post.profiles?.username}</b> finished a session</span>
+                {isOwnPrivate && (
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 20 }}>
+                🔒 Only you
+              </span>
+                )}
+            </div>
+            <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
+              {new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {new Date(post.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
             </div>
             <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
               {post.sessions?.label} — {post.sessions?.minutes}m — <span style={{ color: 'var(--accent)' }}>+{post.sessions?.xp_earned} xp</span>
             </div>
 
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: postComments.length > 0 || true ? 12 : 0 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
               <button
                 onClick={() => toggleKudos(post.id)}
                 className={kudosGiven ? '' : 'icon-button'}

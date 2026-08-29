@@ -1,23 +1,82 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [message, setMessage] = useState('')
   const router = useRouter()
   const supabase = createClient()
+  const [mode, setMode] = useState('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState(null)
+  const [message, setMessage] = useState('')
+  const [forgotMode, setForgotMode] = useState(false)
+
+  useEffect(() => {
+    if (mode !== 'signup' || username.trim().length < 3) {
+      setUsernameStatus(null)
+      return
+    }
+    const timeout = setTimeout(async () => {
+      const trimmed = username.trim()
+      if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+        setUsernameStatus('invalid')
+        return
+      }
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('username', trimmed)
+        .maybeSingle()
+      setUsernameStatus(data ? 'taken' : 'available')
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [username, mode])
+
+  async function handleGoogleSignIn() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    })
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setMessage('')
 
-    if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password })
+    if (mode === 'signup') {
+      const trimmedUsername = username.trim()
+      if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
+        setMessage('Username must be 3-20 characters.')
+        return
+      }
+      if (usernameStatus === 'taken') {
+        setMessage('That username is already taken.')
+        return
+      }
+      if (usernameStatus === 'invalid') {
+        setMessage('Username can only contain letters, numbers, and underscores.')
+        return
+      }
+      if (password.length < 6) {
+        setMessage('Password must be at least 6 characters.')
+        return
+      }
+      if (password !== confirmPassword) {
+        setMessage('Passwords do not match.')
+        return
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username: trimmedUsername } },
+      })
+
       if (error) {
         setMessage(error.message)
       } else {
@@ -33,37 +92,141 @@ export default function LoginPage() {
     }
   }
 
+  async function handleForgotPassword(e) {
+    e.preventDefault()
+    setMessage('')
+    if (!email) {
+      setMessage('Enter your email above first.')
+      return
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) {
+      setMessage(error.message)
+    } else {
+      setMessage('Password reset email sent — check your inbox.')
+    }
+  }
+
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', fontFamily: 'sans-serif' }}>
-      <h1>{isSignUp ? 'Sign up' : 'Log in'}</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: 10 }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: 10 }}
-        />
-        <button type="submit" style={{ padding: 10 }}>
-          {isSignUp ? 'Sign up' : 'Log in'}
+    <div className="page-fade" style={{ maxWidth: 400, margin: '60px auto', padding: '0 20px' }}>
+      <a href="/" style={{ display: 'inline-block', marginBottom: 20, fontSize: 13 }}>← Back to home</a>
+
+      <div className="glass-card">
+        <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', marginBottom: 20 }}>
+          {mode === 'signup' ? 'Create your account' : 'Welcome back'}
+        </h2>
+
+        <button
+          onClick={handleGoogleSignIn}
+          className="icon-button"
+          style={{ width: '100%', padding: '10px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+        >
+          Continue with Google
         </button>
-      </form>
-      {message && <p style={{ marginTop: 12 }}>{message}</p>}
-      <button
-        onClick={() => setIsSignUp(!isSignUp)}
-        style={{ marginTop: 16, background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}
-      >
-        {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
-      </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0', fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ flex: 1, height: 1, background: 'var(--glass-border)' }} />
+          OR
+          <div style={{ flex: 1, height: 1, background: 'var(--glass-border)' }} />
+        </div>
+
+        {!forgotMode ? (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {mode === 'signup' && (
+              <div>
+                <input
+                  type="text"
+                  placeholder="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  style={{ width: '100%' }}
+                />
+                {usernameStatus === 'available' && (
+                  <div style={{ fontSize: 11, color: 'var(--success)', marginTop: 4 }}>✓ Available</div>
+                )}
+                {usernameStatus === 'taken' && (
+                  <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>Already taken</div>
+                )}
+                {usernameStatus === 'invalid' && (
+                  <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>Letters, numbers, underscores only</div>
+                )}
+              </div>
+            )}
+            <input
+              type="email"
+              placeholder="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{ width: '100%' }}
+            />
+            <input
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ width: '100%' }}
+            />
+            {mode === 'signup' && (
+              <input
+                type="password"
+                placeholder="confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={{ width: '100%' }}
+              />
+            )}
+            <button type="submit" style={{ width: '100%' }}>
+              {mode === 'signup' ? 'Sign up' : 'Log in'}
+            </button>
+
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => setForgotMode(true)}
+                style={{ background: 'none', color: 'var(--text-muted)', fontSize: 12, padding: 0, boxShadow: 'none' }}
+              >
+                Forgot password?
+              </button>
+            )}
+          </form>
+        ) : (
+          <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input
+              type="email"
+              placeholder="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{ width: '100%' }}
+            />
+            <button type="submit" style={{ width: '100%' }}>Send reset link</button>
+            <button
+              type="button"
+              onClick={() => setForgotMode(false)}
+              style={{ background: 'none', color: 'var(--text-muted)', fontSize: 12, padding: 0, boxShadow: 'none' }}
+            >
+              Back to login
+            </button>
+          </form>
+        )}
+
+        {message && <p style={{ marginTop: 14, fontSize: 13, color: 'var(--text-muted)' }}>{message}</p>}
+
+        {!forgotMode && (
+          <button
+            onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setMessage('') }}
+            style={{ marginTop: 16, background: 'none', color: 'var(--text-muted)', fontSize: 13, padding: 0, boxShadow: 'none', textDecoration: 'underline' }}
+          >
+            {mode === 'signup' ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
