@@ -170,7 +170,7 @@ export default function FriendsPage() {
 
         {searchResults.map((r) => (
           <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
-            <span>{r.username}</span>
+            <a href={`/profile/${r.username}`}>{r.username}</a>
             <button onClick={() => sendRequest(r.id)} style={{ padding: '4px 10px', fontSize: 12 }}>Add</button>
           </div>
         ))}
@@ -181,7 +181,7 @@ export default function FriendsPage() {
           <h4 style={{ fontSize: 16, marginBottom: 12 }}>Pending requests</h4>
           {pending.map((p) => (
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
-              <span>{p.profiles.username}</span>
+              <a href={`/profile/${p.profiles.username}`}>{p.profiles.username}</a>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => acceptRequest(p.id)} style={{ padding: '4px 10px', fontSize: 12 }}>Accept</button>
                 <button onClick={() => declineRequest(p.id)} className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12 }}>Decline</button>
@@ -214,7 +214,11 @@ export default function FriendsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span className="mono" style={{ color: 'var(--text-muted)', width: 20 }}>#{i + 1}</span>
               {f.avatars && <Character color={f.avatars.color} color2={f.avatars.color2} species={f.avatars.species} size={24} />}
-              <span>{f.username}</span>
+              {f.username === 'You' ? (
+                <span>{f.username}</span>
+              ) : (
+                <a href={`/profile/${f.username}`}>{f.username}</a>
+              )}
             </div>
             <span className="mono" style={{ color: 'var(--accent)' }}>{f.xp} xp</span>
           </div>
