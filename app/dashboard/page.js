@@ -121,10 +121,22 @@ export default function Dashboard() {
     setRunning(true)
   }
 
+  async function handleEndClick() {
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 1) {
+      setRunning(false)
+      setSeconds(0)
+      setDistractions(0)
+      return
+    }
+    const confirmed = window.confirm(`End this session? You've focused for ${minutes} minute${minutes === 1 ? '' : 's'}.`)
+    if (!confirmed) return
+    await endSession()
+  }
+
   async function endSession() {
     setRunning(false)
     const minutes = Math.floor(seconds / 60)
-    if (minutes < 1) return
 
     const distractionPenalty = Math.min(distractions * 2, minutes)
     const earnedXp = Math.max(minutes - distractionPenalty, Math.floor(minutes * 0.2))
@@ -219,84 +231,89 @@ export default function Dashboard() {
               celebrate={!!justFinished}
             />
           )}
-          <h1 style={{ fontSize: 28 }}>Hey, {profile?.username}</h1>
+          <a href={`/profile/${profile?.username}`} style={{ textDecoration: 'none' }}>
+            <h1 style={{ fontSize: 28, color: 'var(--text)' }}>Hey, {profile?.username}</h1>
+          </a>
         </div>
         <button onClick={handleLogout} className="btn-secondary">Log out</button>
       </div>
 
       <Nav />
 
-      {justFinished && (() => {
-        const baseXp = justFinished.minutes
-        const penalty = Math.max(baseXp - justFinished.xp_earned, 0)
-        const hadPenalty = justFinished.distractions > 0 && penalty > 0
+      {justFinished ? (
+        (() => {
+          const baseXp = justFinished.minutes
+          const penalty = Math.max(baseXp - justFinished.xp_earned, 0)
+          const hadPenalty = justFinished.distractions > 0 && penalty > 0
 
-        return (
-          <div className="card-raised" style={{
-            marginTop: 20,
-            textAlign: 'center',
-            borderColor: 'var(--accent)',
-          }}>
-            <div style={{ fontSize: 11, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600, marginBottom: 8 }}>
-              Session complete
-            </div>
-            <h3 style={{ fontSize: 22, marginBottom: 12 }}>Nice work</h3>
+          return (
+            <div className="card-raised" style={{
+              textAlign: 'center',
+              borderColor: 'var(--accent)',
+            }}>
+              <div style={{ fontSize: 11, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600, marginBottom: 8 }}>
+                Session complete
+              </div>
+              <h3 style={{ fontSize: 22, marginBottom: 12 }}>Nice work</h3>
 
-            <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'left', maxWidth: 220, margin: '0 auto 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Focused time</span>
-                <span>{justFinished.minutes}m</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Base XP</span>
-                <span>{baseXp}</span>
-              </div>
-              {hadPenalty && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--danger)' }}>
-                  <span>Left tab {justFinished.distractions}x</span>
-                  <span>-{penalty}</span>
+              <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'left', maxWidth: 220, margin: '0 auto 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Focused time</span>
+                  <span>{justFinished.minutes}m</span>
                 </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 6, marginTop: 4, color: 'var(--text)', fontWeight: 700 }}>
-                <span>Total XP</span>
-                <span style={{ color: 'var(--accent)' }}>+{justFinished.xp_earned}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Base XP</span>
+                  <span>{baseXp}</span>
+                </div>
+                {hadPenalty && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--danger)' }}>
+                    <span>Left tab {justFinished.distractions}x</span>
+                    <span>-{penalty}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 6, marginTop: 4, color: 'var(--text)', fontWeight: 700 }}>
+                  <span>Total XP</span>
+                  <span style={{ color: 'var(--accent)' }}>+{justFinished.xp_earned}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <button onClick={shareSession}>Share to feed</button>
+                <button onClick={dismissShare} className="btn-secondary">Keep private</button>
               </div>
             </div>
+          )
+        })()
+      ) : (
+        <>
+          <div className="mono" style={{ margin: '20px 0', fontSize: 13, color: 'var(--text-muted)', display: 'flex', gap: 20 }}>
+            <span>XP <b style={{ color: 'var(--text)' }}>{profile?.xp}</b></span>
+            <span>Streak <b style={{ color: 'var(--text)' }}>{profile?.streak}</b></span>
+          </div>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={shareSession}>Share to feed</button>
-              <button onClick={dismissShare} className="btn-secondary">Keep private</button>
+          <div className="card" style={{ textAlign: 'center' }}>
+            {!running && (
+              <input
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="what are you working on?"
+                style={{ width: '100%', marginBottom: 20 }}
+              />
+            )}
+            <div className="mono" style={{ fontSize: 44, fontWeight: 600 }}>{fmtTime(seconds)}</div>
+            {running && distractions > 0 && (
+              <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 6 }}>left the tab {distractions}x</div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              {!running ? (
+                <button onClick={startSession} style={{ padding: '11px 28px' }}>Start session</button>
+              ) : (
+                <button onClick={handleEndClick} style={{ padding: '11px 28px' }}>End session</button>
+              )}
             </div>
           </div>
-        )
-      })()}
-
-      <div className="mono" style={{ margin: '20px 0', fontSize: 13, color: 'var(--text-muted)', display: 'flex', gap: 20 }}>
-        <span>XP <b style={{ color: 'var(--text)' }}>{profile?.xp}</b></span>
-        <span>Streak <b style={{ color: 'var(--text)' }}>{profile?.streak}</b></span>
-      </div>
-
-      <div className="card" style={{ textAlign: 'center' }}>
-        {!running && (
-          <input
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="what are you working on?"
-            style={{ width: '100%', marginBottom: 20 }}
-          />
-        )}
-        <div className="mono" style={{ fontSize: 44, fontWeight: 600 }}>{fmtTime(seconds)}</div>
-        {running && distractions > 0 && (
-          <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 6 }}>left the tab {distractions}x</div>
-        )}
-        <div style={{ marginTop: 18 }}>
-          {!running ? (
-            <button onClick={startSession} style={{ padding: '11px 28px' }}>Start session</button>
-          ) : (
-            <button onClick={endSession} style={{ padding: '11px 28px' }}>End session</button>
-          )}
-        </div>
-      </div>
+        </>
+      )}
 
       <div className="card" style={{ marginTop: 16 }}>
         <h4 style={{ fontSize: 16, marginBottom: 14 }}>Recent sessions</h4>
