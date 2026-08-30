@@ -61,6 +61,7 @@ export default function Nav() {
       <a href="/planner">Planner</a>
       <a href="/calendar">Calendar</a>
       <a href="/avatar">Avatar</a>
+      <a href="/shop">Shop</a>
       {username && <a href={`/profile/${username}`}>Profile</a>}
       <a href="/settings">Settings</a>
     </div>

@@ -1,6 +1,40 @@
 'use client'
 
-export default function Character({ color = '#7C5CFF', color2 = '#5A3FD9', species = 'blob', size = 64, celebrate = false }) {
+function Accessory({ type, size }) {
+  switch (type) {
+    case 'hat':
+      return (
+        <g>
+          <rect x="30" y="4" width="40" height="6" rx="2" fill="#2A2118" />
+          <rect x="38" y="-10" width="24" height="18" rx="2" fill="#2A2118" />
+        </g>
+      )
+    case 'glasses':
+      return (
+        <g>
+          <circle cx="38" cy="45" r="9" fill="none" stroke="#1A1730" strokeWidth="3" />
+          <circle cx="62" cy="45" r="9" fill="none" stroke="#1A1730" strokeWidth="3" />
+          <line x1="47" y1="45" x2="53" y2="45" stroke="#1A1730" strokeWidth="3" />
+        </g>
+      )
+    case 'bowtie':
+      return (
+        <g>
+          <path d="M 42 84 L 50 90 L 42 96 Z" fill="#D9463C" />
+          <path d="M 58 84 L 50 90 L 58 96 Z" fill="#D9463C" />
+          <circle cx="50" cy="90" r="2.5" fill="#8A2A22" />
+        </g>
+      )
+    case 'halo':
+      return (
+        <ellipse cx="50" cy="2" rx="16" ry="5" fill="none" stroke="#FFD24D" strokeWidth="3" />
+      )
+    default:
+      return null
+  }
+}
+
+export default function Character({ color = '#7C5CFF', color2 = '#5A3FD9', species = 'blob', size = 64, celebrate = false, accessoryType = null }) {
   const gradId = `grad-${color.replace('#', '')}-${species}`
 
   function renderFace() {
@@ -52,7 +86,6 @@ export default function Character({ color = '#7C5CFF', color2 = '#5A3FD9', speci
       case 'hero':
         return (
           <>
-            <path d="M 50 20 C 20 30, 20 65, 50 90 C 80 65, 80 30, 50 20 Z" fill="rgba(0,0,0,0.15)" transform="translate(0,4)" />
             <circle cx="50" cy="50" r="35" fill={`url(#${gradId})`} />
             <path d="M 20 44 Q 50 28 80 44 L 76 50 Q 50 38 24 50 Z" fill="#1A1730" opacity="0.8" />
             <g style={{ animation: 'char-blink 3.5s ease-in-out infinite', transformOrigin: '50% 50%' }}>
@@ -103,7 +136,7 @@ export default function Character({ color = '#7C5CFF', color2 = '#5A3FD9', speci
           96% { transform: scaleY(0.1); }
         }
       `}</style>
-      <svg viewBox="0 0 100 100" width={size} height={size}>
+      <svg viewBox="-5 -15 110 115" width={size} height={size}>
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor={color} />
@@ -112,6 +145,7 @@ export default function Character({ color = '#7C5CFF', color2 = '#5A3FD9', speci
         </defs>
         <ellipse cx="50" cy="92" rx="24" ry="4" fill="rgba(0,0,0,0.15)" />
         {renderFace()}
+        {accessoryType && <Accessory type={accessoryType} size={size} />}
       </svg>
       {celebrate && (
         <div style={{ position: 'absolute', top: -10, right: -6, fontSize: size * 0.28 }}>✨</div>

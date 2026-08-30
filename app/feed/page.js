@@ -33,7 +33,7 @@ export default function FeedPage() {
   async function loadFeed() {
     const { data: postsData } = await supabase
       .from('activity_posts')
-      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles(username, avatars(color, color2, species))')
+      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles(username, avatars(color, color2, species), equippedAccessory:accessories(type))')
       .order('created_at', { ascending: false })
       .limit(30)
 
@@ -121,7 +121,13 @@ export default function FeedPage() {
             <div style={{ fontSize: 14, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {post.profiles?.avatars && (
-                  <Character color={post.profiles.avatars.color} color2={post.profiles.avatars.color2} species={post.profiles.avatars.species} size={28} />
+                  <Character
+                    color={post.profiles.avatars.color}
+                    color2={post.profiles.avatars.color2}
+                    species={post.profiles.avatars.species}
+                    accessoryType={post.profiles.equippedAccessory?.type || null}
+                    size={28}
+                  />
                 )}
                 <span>
                   <a href={`/profile/${post.profiles?.username}`} style={{ fontWeight: 700, color: 'var(--text)' }}>{post.profiles?.username}</a> finished a session

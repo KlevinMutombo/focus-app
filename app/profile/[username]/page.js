@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [avatar, setAvatar] = useState(null)
+  const [equippedAccessoryType, setEquippedAccessoryType] = useState(null)
   const [ownedAvatars, setOwnedAvatars] = useState([])
   const [mutualFriends, setMutualFriends] = useState([])
   const [friendCount, setFriendCount] = useState(0)
@@ -34,7 +35,7 @@ export default function ProfilePage() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('*, avatars(color, color2, species, name)')
+        .select('*, avatars(color, color2, species, name), equippedAccessory:accessories(type)')
         .ilike('username', params.username)
         .maybeSingle()
 
@@ -46,12 +47,14 @@ export default function ProfilePage() {
 
       setProfile(profileData)
       setAvatar(profileData.avatars)
+      setEquippedAccessoryType(profileData.equippedAccessory?.type || null)
 
       const { data: allAvatars } = await supabase.from('avatars').select('*')
       const owned = (allAvatars || []).filter((a) => {
         if (a.tier === 'starter') return true
         if (a.tier === 'og') return profileData.is_og_tester
         if (a.tier === 'earned') return profileData.xp >= a.unlock_xp
+        if (a.tier === 'shop') return profileData.avatar_id === a.id
         return false
       })
       setOwnedAvatars(owned)
@@ -136,7 +139,7 @@ export default function ProfilePage() {
       <Nav />
 
       <div className="card" style={{ marginTop: 20, textAlign: 'center', padding: 32 }}>
-        {avatar && <Character color={avatar.color} color2={avatar.color2} species={avatar.species} size={80} />}
+        {avatar && <Character color={avatar.color} color2={avatar.color2} species={avatar.species} accessoryType={equippedAccessoryType} size={80} />}
         <h1 style={{ fontSize: 24, marginTop: 12 }}>{profile.username}</h1>
         {avatar && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{avatar.name}</div>}
 
@@ -161,7 +164,10 @@ export default function ProfilePage() {
           </div>
         )}
         {isOwnProfile && (
-          <button onClick={() => router.push('/avatar')} className="btn-secondary" style={{ marginTop: 16 }}>Edit avatar</button>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
+            <button onClick={() => router.push('/avatar')} className="btn-secondary">Edit avatar</button>
+            <button onClick={() => router.push('/shop')} className="btn-secondary">Shop</button>
+          </div>
         )}
       </div>
 

@@ -18,6 +18,7 @@ export default function Dashboard() {
 
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [equippedAccessoryType, setEquippedAccessoryType] = useState(null)
   const [sessions, setSessions] = useState([])
   const [postsBySession, setPostsBySession] = useState({})
   const [running, setRunning] = useState(false)
@@ -42,7 +43,7 @@ export default function Dashboard() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('*, avatarInfo:avatars(color, color2, species)')
+        .select('*, avatarInfo:avatars(color, color2, species), equippedAccessory:accessories(type)')
         .eq('id', user.id)
         .single()
 
@@ -52,6 +53,7 @@ export default function Dashboard() {
       }
 
       setProfile(profileData)
+      setEquippedAccessoryType(profileData.equippedAccessory?.type || null)
 
       await loadSessions(user.id)
       setLoading(false)
@@ -224,6 +226,7 @@ export default function Dashboard() {
             color={profile.avatarInfo.color}
             color2={profile.avatarInfo.color2}
             species={profile.avatarInfo.species}
+            accessoryType={equippedAccessoryType}
             size={44}
             celebrate={!!justFinished}
           />
