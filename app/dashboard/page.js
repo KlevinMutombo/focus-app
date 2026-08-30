@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [distractions, setDistractions] = useState(0)
   const [label, setLabel] = useState('')
   const [loading, setLoading] = useState(true)
+  const [finishing, setFinishing] = useState(false)
   const [justFinished, setJustFinished] = useState(null)
   const [expandedSession, setExpandedSession] = useState(null)
   const intervalRef = useRef(null)
@@ -131,7 +132,9 @@ export default function Dashboard() {
     }
     const confirmed = window.confirm(`End this session? You've focused for ${minutes} minute${minutes === 1 ? '' : 's'}.`)
     if (!confirmed) return
+    setFinishing(true)
     await endSession()
+    setFinishing(false)
   }
 
   async function endSession() {
@@ -232,7 +235,11 @@ export default function Dashboard() {
 
       <Nav />
 
-      {justFinished ? (
+      {finishing ? (
+        <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+          <div className="mono" style={{ fontSize: 14, color: 'var(--text-muted)' }}>Saving your session...</div>
+        </div>
+      ) : justFinished ? (
         (() => {
           const baseXp = justFinished.minutes
           const penalty = Math.max(baseXp - justFinished.xp_earned, 0)
