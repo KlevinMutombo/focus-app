@@ -41,6 +41,12 @@ export default function Dashboard() {
       }
       setUser(user)
 
+      const prefill = sessionStorage.getItem('momenta_prefill_label')
+      if (prefill) {
+        setLabel(prefill)
+        sessionStorage.removeItem('momenta_prefill_label')
+      }
+
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*, avatarInfo:avatars(color, color2, species), equippedAccessory:accessories(type)')

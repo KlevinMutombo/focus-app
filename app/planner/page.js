@@ -36,6 +36,7 @@ export default function PlannerPage() {
   const [title, setTitle] = useState('')
   const [course, setCourse] = useState('')
   const [dueDate, setDueDate] = useState('')
+  const [scheduledTime, setScheduledTime] = useState('')
   const [showCompleted, setShowCompleted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [subtaskDrafts, setSubtaskDrafts] = useState({})
@@ -75,11 +76,13 @@ export default function PlannerPage() {
       title: trimmedTitle,
       course: course.trim().slice(0, 50) || null,
       due_date: dueDate || null,
+      scheduled_time: scheduledTime || null,
     })
 
     setTitle('')
     setCourse('')
     setDueDate('')
+    setScheduledTime('')
     await loadTasks(user.id)
   }
 
@@ -172,6 +175,11 @@ export default function PlannerPage() {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
           />
+          <input
+            type="time"
+            value={scheduledTime}
+            onChange={(e) => setScheduledTime(e.target.value)}
+          />
           <button type="submit">Add task</button>
         </form>
       </div>
@@ -236,7 +244,7 @@ export default function PlannerPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {t.due_date && (
                     <span className="mono" style={{ fontSize: 11, color: urgencyColors[t.urgency.level], fontWeight: 600 }}>
-                      {t.urgency.label}
+                      {t.urgency.label}{t.scheduled_time && ` · ${t.scheduled_time.slice(0, 5)}`}
                     </span>
                   )}
                   <button

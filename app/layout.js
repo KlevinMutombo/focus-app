@@ -5,6 +5,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationBell from "./components/NotificationBell";
 import Logo from "./components/Logo";
 import LogoutButton from "./components/LogoutButton";
+import StudyPrompt from "./components/StudyPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <Logo />
           <LogoutButton />
+          <StudyPrompt />
           {children}
           <NotificationBell />
           <ThemeToggle />
