@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [friendCount, setFriendCount] = useState(0)
   const [isFriend, setIsFriend] = useState(false)
   const [isPending, setIsPending] = useState(false)
+  const [friendshipId, setFriendshipId] = useState(null)
   const [posts, setPosts] = useState([])
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -63,12 +64,13 @@ export default function ProfilePage() {
       if (profileData.id !== user.id) {
         const { data: relCheck } = await supabase
           .from('friendships')
-          .select('id, status, user_id')
+          .select('id, status')
           .or(`and(user_id.eq.${user.id},friend_id.eq.${profileData.id}),and(user_id.eq.${profileData.id},friend_id.eq.${user.id})`)
           .maybeSingle()
 
         if (relCheck?.status === 'accepted') {
           setIsFriend(true)
+          setFriendshipId(relCheck.id)
         } else if (relCheck?.status === 'pending') {
           setIsPending(true)
         }
@@ -107,6 +109,16 @@ export default function ProfilePage() {
     setIsPending(true)
   }
 
+  async function removeFriend() {
+    if (!friendshipId) return
+    const confirmed = window.confirm('Remove this friend?')
+    if (!confirmed) return
+    await supabase.from('friendships').delete().eq('id', friendshipId)
+    setIsFriend(false)
+    setFriendshipId(null)
+    setFriendCount((c) => Math.max(c - 1, 0))
+  }
+
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
   if (notFound) return (
     <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
@@ -141,7 +153,12 @@ export default function ProfilePage() {
           <div style={{ marginTop: 16, fontSize: 12, color: 'var(--text-muted)' }}>Request pending</div>
         )}
         {!isOwnProfile && isFriend && (
-          <div style={{ marginTop: 16, fontSize: 12, color: 'var(--text-muted)' }}>Already friends</div>
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>Already friends</div>
+            <button onClick={removeFriend} className="btn-secondary" style={{ fontSize: 12, padding: '6px 14px' }}>
+              Remove friend
+            </button>
+          </div>
         )}
         {isOwnProfile && (
           <button onClick={() => router.push('/avatar')} className="btn-secondary" style={{ marginTop: 16 }}>Edit avatar</button>

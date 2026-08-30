@@ -16,6 +16,7 @@ export default function FriendsPage() {
   const [pending, setPending] = useState([])
   const [sentPendingIds, setSentPendingIds] = useState([])
   const [friendIds, setFriendIds] = useState([])
+  const [friendshipMap, setFriendshipMap] = useState({})
   const [friends, setFriends] = useState([])
   const [period, setPeriod] = useState('all')
   const [leaderboard, setLeaderboard] = useState([])
@@ -82,6 +83,11 @@ export default function FriendsPage() {
     ]
     setFriends(combined)
     setFriendIds(combined.map(f => f.id))
+
+    const fMap = {}
+    ;(sent || []).forEach((f) => { fMap[f.profiles.id] = f.id })
+    ;(received || []).forEach((f) => { fMap[f.profiles.id] = f.id })
+    setFriendshipMap(fMap)
   }
 
   async function buildLeaderboard() {
@@ -159,6 +165,15 @@ export default function FriendsPage() {
   async function declineRequest(friendshipId) {
     await supabase.from('friendships').delete().eq('id', friendshipId)
     await loadPending(user.id)
+  }
+
+  async function removeFriend(friendUserId) {
+    const friendshipId = friendshipMap[friendUserId]
+    if (!friendshipId) return
+    const confirmed = window.confirm('Remove this friend?')
+    if (!confirmed) return
+    await supabase.from('friendships').delete().eq('id', friendshipId)
+    await loadFriends(user.id)
   }
 
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
@@ -243,7 +258,14 @@ export default function FriendsPage() {
                 <a href={`/profile/${f.username}`}>{f.username}</a>
               )}
             </div>
-            <span className="mono" style={{ color: 'var(--accent)' }}>{f.xp} xp</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className="mono" style={{ color: 'var(--accent)' }}>{f.xp} xp</span>
+              {f.username !== 'You' && (
+                <button onClick={() => removeFriend(f.id)} className="btn-secondary" style={{ fontSize: 10, padding: '2px 8px' }}>
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

@@ -317,43 +317,55 @@ export default function Dashboard() {
           return (
             <div key={s.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span
-                    onClick={() => setExpandedSession(isExpanded ? null : s.id)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {s.label}
-                  </span>
+                <div
+                  onClick={() => setExpandedSession(isExpanded ? null : s.id)}
+                  style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer' }}
+                >
+                  <span>{s.label}</span>
                   <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                     {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {new Date(s.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                   </span>
                 </div>
-                <span className="mono" style={{ color: 'var(--text-muted)' }}>{s.minutes}m</span>
-                <span className="mono" style={{ color: 'var(--accent)' }}>+{s.xp_earned} xp</span>
-                <button
-                  onClick={() => deleteSession(s.id, s.xp_earned)}
-                  className="btn-secondary"
-                  style={{ fontSize: 10, padding: '2px 8px', marginLeft: 8 }}
-                >
-                  ×
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="mono" style={{ color: 'var(--text-muted)' }}>{s.minutes}m</span>
+                  <span className="mono" style={{ color: 'var(--accent)' }}>+{s.xp_earned} xp</span>
+                  <button
+                    onClick={() => setExpandedSession(isExpanded ? null : s.id)}
+                    className="btn-secondary"
+                    style={{ fontSize: 14, padding: '3px 9px', lineHeight: 1 }}
+                  >
+                    ⋯
+                  </button>
+                </div>
               </div>
 
-              {isExpanded && post && (
+              {isExpanded && (
                 <div style={{ marginTop: 8, paddingLeft: 4, fontSize: 12, color: 'var(--text-muted)' }}>
-                  <div style={{ marginBottom: 6 }}>
-                    {post.is_private ? 'Private — only you can see this' : `Public — ${post.kudosCount || 0} boosts, ${post.commentsCount || 0} comments`}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => togglePostPrivacy(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
-                      {post.is_private ? 'Make public' : 'Make private'}
-                    </button>
-                    {!post.is_private && (
-                      <button onClick={() => removeFromFeed(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
-                        Remove from feed
+                  {post ? (
+                    <>
+                      <div style={{ marginBottom: 6 }}>
+                        {post.is_private ? 'Private — only you can see this' : `Public — ${post.kudosCount || 0} boosts, ${post.commentsCount || 0} comments`}
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button onClick={() => togglePostPrivacy(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+                          {post.is_private ? 'Make public' : 'Make private'}
+                        </button>
+                        <button onClick={() => removeFromFeed(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+                          Remove from feed
+                        </button>
+                        <button onClick={() => deleteSession(s.id, s.xp_earned)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', color: 'var(--danger)' }}>
+                          Delete session
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: 6 }}>Removed from feed</div>
+                      <button onClick={() => deleteSession(s.id, s.xp_earned)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', color: 'var(--danger)' }}>
+                        Delete session
                       </button>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

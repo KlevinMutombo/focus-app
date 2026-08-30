@@ -123,7 +123,9 @@ export default function FeedPage() {
                 {post.profiles?.avatars && (
                   <Character color={post.profiles.avatars.color} color2={post.profiles.avatars.color2} species={post.profiles.avatars.species} size={28} />
                 )}
-                <span><b>{post.profiles?.username}</b> finished a session</span>
+                <span>
+                  <a href={`/profile/${post.profiles?.username}`} style={{ fontWeight: 700, color: 'var(--text)' }}>{post.profiles?.username}</a> finished a session
+                </span>
               </div>
               {isOwnPrivate && (
                 <span style={{ fontSize: 10, color: 'var(--text-muted)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: 20 }}>

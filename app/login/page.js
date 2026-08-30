@@ -9,6 +9,7 @@ function LoginForm() {
   const supabase = createClient()
   const searchParams = useSearchParams()
   const [mode, setMode] = useState(searchParams.get('mode') === 'login' ? 'login' : 'signup')
+  const [emailOrUsername, setEmailOrUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -84,7 +85,21 @@ function LoginForm() {
         setMessage('Check your email to confirm your account.')
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const input = emailOrUsername.trim()
+      let loginEmail = input
+
+      if (!input.includes('@')) {
+        const { data: resolvedEmail, error: lookupError } = await supabase.rpc('get_email_for_username', {
+          input_username: input,
+        })
+        if (lookupError || !resolvedEmail) {
+          setMessage('No account found with that username.')
+          return
+        }
+        loginEmail = resolvedEmail
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password })
       if (error) {
         setMessage(error.message)
       } else {
@@ -137,35 +152,46 @@ function LoginForm() {
 
         {!forgotMode ? (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {mode === 'signup' && (
-              <div>
+            {mode === 'signup' ? (
+              <>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    style={{ width: '100%' }}
+                  />
+                  {usernameStatus === 'available' && (
+                    <div style={{ fontSize: 11, color: 'var(--success)', marginTop: 4 }}>✓ Available</div>
+                  )}
+                  {usernameStatus === 'taken' && (
+                    <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>Already taken</div>
+                  )}
+                  {usernameStatus === 'invalid' && (
+                    <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>Letters, numbers, underscores only</div>
+                  )}
+                </div>
                 <input
-                  type="text"
-                  placeholder="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  type="email"
+                  placeholder="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   style={{ width: '100%' }}
                 />
-                {usernameStatus === 'available' && (
-                  <div style={{ fontSize: 11, color: 'var(--success)', marginTop: 4 }}>✓ Available</div>
-                )}
-                {usernameStatus === 'taken' && (
-                  <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>Already taken</div>
-                )}
-                {usernameStatus === 'invalid' && (
-                  <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>Letters, numbers, underscores only</div>
-                )}
-              </div>
+              </>
+            ) : (
+              <input
+                type="text"
+                placeholder="email or username"
+                value={emailOrUsername}
+                onChange={(e) => setEmailOrUsername(e.target.value)}
+                required
+                style={{ width: '100%' }}
+              />
             )}
-            <input
-              type="email"
-              placeholder="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{ width: '100%' }}
-            />
             <input
               type="password"
               placeholder="password"
