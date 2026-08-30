@@ -200,6 +200,13 @@ export default function SettingsPage() {
         {passwordMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{passwordMessage}</p>}
       </div>
 
+      <div className="card" style={{ marginTop: 16, textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: 13 }}>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+      </div>
+
       <div className="card" style={{ marginTop: 16, borderColor: 'var(--danger)' }}>
         <h4 style={{ fontSize: 16, marginBottom: 8, color: 'var(--danger)' }}>Delete account</h4>
         <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
