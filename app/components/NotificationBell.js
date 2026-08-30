@@ -35,27 +35,42 @@ export default function NotificationBell() {
       .eq('user_id', userId)
 
     const postIds = (myPosts || []).map(p => p.id)
-    if (postIds.length === 0) return
 
-    const { data: kudosData } = await supabase
-      .from('kudos')
-      .select('id, post_id, user_id, created_at, profiles(username)')
-      .in('post_id', postIds)
-      .neq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(20)
+    let kudosData = []
+    let commentsData = []
 
-    const { data: commentsData } = await supabase
-      .from('comments')
-      .select('id, post_id, user_id, content, created_at, profiles(username)')
-      .in('post_id', postIds)
-      .neq('user_id', userId)
+    if (postIds.length > 0) {
+      const { data: k } = await supabase
+        .from('kudos')
+        .select('id, post_id, user_id, created_at, profiles(username)')
+        .in('post_id', postIds)
+        .neq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      kudosData = k || []
+
+      const { data: c } = await supabase
+        .from('comments')
+        .select('id, post_id, user_id, content, created_at, profiles(username)')
+        .in('post_id', postIds)
+        .neq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      commentsData = c || []
+    }
+
+    const { data: friendRequests } = await supabase
+      .from('friendships')
+      .select('id, created_at, profiles!friendships_user_id_fkey(username)')
+      .eq('friend_id', userId)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false })
       .limit(20)
 
     const combined = [
-      ...(kudosData || []).map(k => ({ type: 'kudos', ...k })),
-      ...(commentsData || []).map(c => ({ type: 'comment', ...c })),
+      ...kudosData.map(k => ({ type: 'kudos', ...k })),
+      ...commentsData.map(c => ({ type: 'comment', ...c })),
+      ...(friendRequests || []).map(f => ({ type: 'friend_request', ...f })),
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
     setNotifications(combined)
@@ -73,7 +88,7 @@ export default function NotificationBell() {
   return (
     <div style={{ position: 'fixed', bottom: 24, right: 80, zIndex: 100 }}>
       {open && (
-        <div className="glass-card" style={{
+        <div className="card" style={{
           position: 'absolute',
           bottom: 56,
           right: 0,
@@ -87,11 +102,15 @@ export default function NotificationBell() {
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Nothing yet</p>
           )}
           {notifications.map((n) => (
-            <div key={`${n.type}-${n.id}`} style={{ fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--glass-border)' }}>
-              {n.type === 'kudos' ? (
+            <div key={`${n.type}-${n.id}`} style={{ fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+              {n.type === 'kudos' && (
                 <span><b>{n.profiles?.username}</b> boosted you 🚀</span>
-              ) : (
+              )}
+              {n.type === 'comment' && (
                 <span><b>{n.profiles?.username}</b> commented: "{n.content}"</span>
+              )}
+              {n.type === 'friend_request' && (
+                <span><b>{n.profiles?.username}</b> sent you a friend request</span>
               )}
             </div>
           ))}
@@ -99,10 +118,10 @@ export default function NotificationBell() {
       )}
       <button
         onClick={handleOpen}
-        className="icon-button"
+        className="icon-btn"
         style={{
-          width: 44,
-          height: 44,
+          width: 42,
+          height: 42,
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
