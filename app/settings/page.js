@@ -18,6 +18,10 @@ export default function SettingsPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
 
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteMessage, setDeleteMessage] = useState('')
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -108,6 +112,46 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== currentUsername) {
+      setDeleteMessage('Please type your username exactly to confirm.')
+      return
+    }
+
+    const confirmed = window.confirm('This will permanently delete your account and all your data. This cannot be undone. Are you absolutely sure?')
+    if (!confirmed) return
+
+    setDeleting(true)
+    setDeleteMessage('')
+
+    const { data: { session } } = await supabase.auth.getSession()
+
+    try {
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ userId: user.id }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        setDeleteMessage(result.error || 'Something went wrong.')
+        setDeleting(false)
+        return
+      }
+
+      await supabase.auth.signOut()
+      router.push('/')
+    } catch (err) {
+      setDeleteMessage('Something went wrong. Please try again.')
+      setDeleting(false)
+    }
+  }
+
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
 
   return (
@@ -154,6 +198,32 @@ export default function SettingsPage() {
         </form>
 
         {passwordMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{passwordMessage}</p>}
+      </div>
+
+      <div className="card" style={{ marginTop: 16, borderColor: 'var(--danger)' }}>
+        <h4 style={{ fontSize: 16, marginBottom: 8, color: 'var(--danger)' }}>Delete account</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
+          This permanently deletes your account, sessions, tasks, friendships, and all associated data. This cannot be undone.
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+          Type your username (<b>{currentUsername}</b>) to confirm:
+        </p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder={currentUsername}
+            style={{ flex: 1 }}
+          />
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+            style={{ background: 'var(--danger)', color: '#fff', whiteSpace: 'nowrap' }}
+          >
+            {deleting ? 'Deleting...' : 'Delete my account'}
+          </button>
+        </div>
+        {deleteMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--danger)' }}>{deleteMessage}</p>}
       </div>
     </div>
   )
