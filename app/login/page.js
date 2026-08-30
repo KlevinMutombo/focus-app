@@ -76,7 +76,10 @@ function LoginForm() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { username: trimmedUsername } },
+        options: {
+          data: { username: trimmedUsername },
+          emailRedirectTo: `${window.location.origin}/auth/confirmed`,
+        },
       })
 
       if (error) {
