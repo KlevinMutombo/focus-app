@@ -211,31 +211,23 @@ export default function Dashboard() {
     await loadSessions(user.id)
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
 
   return (
     <div className="page-fade" style={{ maxWidth: 520, margin: '48px auto', padding: '0 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {profile?.avatarInfo && (
-            <Character
-              color={profile.avatarInfo.color}
-              color2={profile.avatarInfo.color2}
-              species={profile.avatarInfo.species}
-              size={44}
-              celebrate={!!justFinished}
-            />
-          )}
-          <a href={`/profile/${profile?.username}`} style={{ textDecoration: 'none' }}>
-            <h1 style={{ fontSize: 28, color: 'var(--text)' }}>Hey, {profile?.username}</h1>
-          </a>
-        </div>
-        <button onClick={handleLogout} className="btn-secondary">Log out</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        {profile?.avatarInfo && (
+          <Character
+            color={profile.avatarInfo.color}
+            color2={profile.avatarInfo.color2}
+            species={profile.avatarInfo.species}
+            size={44}
+            celebrate={!!justFinished}
+          />
+        )}
+        <a href={`/profile/${profile?.username}`} style={{ textDecoration: 'none' }}>
+          <h1 style={{ fontSize: 28, color: 'var(--text)' }}>Hey, {profile?.username}</h1>
+        </a>
       </div>
 
       <Nav />

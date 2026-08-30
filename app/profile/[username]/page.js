@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [mutualFriends, setMutualFriends] = useState([])
   const [friendCount, setFriendCount] = useState(0)
   const [isFriend, setIsFriend] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   const [posts, setPosts] = useState([])
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -62,11 +63,15 @@ export default function ProfilePage() {
       if (profileData.id !== user.id) {
         const { data: relCheck } = await supabase
           .from('friendships')
-          .select('id')
+          .select('id, status, user_id')
           .or(`and(user_id.eq.${user.id},friend_id.eq.${profileData.id}),and(user_id.eq.${profileData.id},friend_id.eq.${user.id})`)
-          .eq('status', 'accepted')
           .maybeSingle()
-        setIsFriend(!!relCheck)
+
+        if (relCheck?.status === 'accepted') {
+          setIsFriend(true)
+        } else if (relCheck?.status === 'pending') {
+          setIsPending(true)
+        }
 
         const { data: mySentF } = await supabase.from('friendships').select('friend_id').eq('user_id', user.id).eq('status', 'accepted')
         const { data: myRecvF } = await supabase.from('friendships').select('user_id').eq('friend_id', user.id).eq('status', 'accepted')
@@ -99,7 +104,7 @@ export default function ProfilePage() {
       friend_id: profile.id,
       status: 'pending',
     })
-    router.push('/friends')
+    setIsPending(true)
   }
 
   if (loading) return <div style={{ padding: 40 }}>Loading...</div>
@@ -129,8 +134,11 @@ export default function ProfilePage() {
           <div><b style={{ color: 'var(--accent)' }}>{profile.streak}</b> <span style={{ color: 'var(--text-muted)' }}>streak</span></div>
         </div>
 
-        {!isOwnProfile && !isFriend && (
+        {!isOwnProfile && !isFriend && !isPending && (
           <button onClick={sendFriendRequest} style={{ marginTop: 16 }}>Add friend</button>
+        )}
+        {!isOwnProfile && isPending && (
+          <div style={{ marginTop: 16, fontSize: 12, color: 'var(--text-muted)' }}>Request pending</div>
         )}
         {!isOwnProfile && isFriend && (
           <div style={{ marginTop: 16, fontSize: 12, color: 'var(--text-muted)' }}>Already friends</div>

@@ -14,6 +14,8 @@ export default function FriendsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [pending, setPending] = useState([])
+  const [sentPendingIds, setSentPendingIds] = useState([])
+  const [friendIds, setFriendIds] = useState([])
   const [friends, setFriends] = useState([])
   const [period, setPeriod] = useState('all')
   const [leaderboard, setLeaderboard] = useState([])
@@ -30,6 +32,7 @@ export default function FriendsPage() {
       const { data: myProfile } = await supabase.from('profiles').select('avatars(color, color2, species)').eq('id', user.id).single()
       setMyAvatar(myProfile?.avatars)
       await loadPending(user.id)
+      await loadSentPending(user.id)
       await loadFriends(user.id)
       setLoading(false)
     }
@@ -51,6 +54,15 @@ export default function FriendsPage() {
     setPending(data || [])
   }
 
+  async function loadSentPending(userId) {
+    const { data } = await supabase
+      .from('friendships')
+      .select('friend_id')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+    setSentPendingIds((data || []).map(f => f.friend_id))
+  }
+
   async function loadFriends(userId) {
     const { data: sent } = await supabase
       .from('friendships')
@@ -69,6 +81,7 @@ export default function FriendsPage() {
       ...(received || []).map(f => ({ id: f.profiles.id, username: f.profiles.username, xp: f.profiles.xp, avatars: f.profiles.avatars })),
     ]
     setFriends(combined)
+    setFriendIds(combined.map(f => f.id))
   }
 
   async function buildLeaderboard() {
@@ -131,8 +144,7 @@ export default function FriendsPage() {
       friend_id: friendId,
       status: 'pending',
     })
-    setSearchResults([])
-    setSearchTerm('')
+    setSentPendingIds((prev) => [...prev, friendId])
   }
 
   async function acceptRequest(friendshipId) {
@@ -168,12 +180,23 @@ export default function FriendsPage() {
           <button onClick={handleSearch}>Search</button>
         </div>
 
-        {searchResults.map((r) => (
-          <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
-            <a href={`/profile/${r.username}`}>{r.username}</a>
-            <button onClick={() => sendRequest(r.id)} style={{ padding: '4px 10px', fontSize: 12 }}>Add</button>
-          </div>
-        ))}
+        {searchResults.map((r) => {
+          const alreadyFriend = friendIds.includes(r.id)
+          const alreadyPending = sentPendingIds.includes(r.id)
+
+          return (
+            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
+              <a href={`/profile/${r.username}`}>{r.username}</a>
+              {alreadyFriend ? (
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Friends</span>
+              ) : alreadyPending ? (
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Pending</span>
+              ) : (
+                <button onClick={() => sendRequest(r.id)} style={{ padding: '4px 10px', fontSize: 12 }}>Add</button>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {pending.length > 0 && (

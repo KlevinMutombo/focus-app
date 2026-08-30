@@ -9,9 +9,12 @@ export default function LandingPage() {
   const router = useRouter()
   const supabase = createClient()
   const [checking, setChecking] = useState(true)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
     async function check() {
+      const { data: { user } } = await supabase.auth.getUser()
+      setLoggedIn(!!user)
       setChecking(false)
     }
     check()
@@ -35,14 +38,21 @@ export default function LandingPage() {
         <p style={{ fontSize: 18, color: 'var(--text-muted)', maxWidth: 440, margin: '0 auto 32px' }}>
           Build momentum. Turn focused study time into XP, streaks, and friendly competition — with a planner that actually keeps up with your week.
         </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <button onClick={() => router.push('/login')} style={{ padding: '12px 28px', fontSize: 15 }}>
-            Get started
+
+        {!loggedIn ? (
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <button onClick={() => router.push('/login')} style={{ padding: '12px 28px', fontSize: 15 }}>
+              Get started
+            </button>
+            <button onClick={() => router.push('/login?mode=login')} className="btn-secondary" style={{ padding: '12px 28px', fontSize: 15 }}>
+              Log in
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => router.push('/dashboard')} style={{ padding: '12px 28px', fontSize: 15 }}>
+            Go to dashboard
           </button>
-          <button onClick={() => router.push('/login?mode=login')} className="btn-secondary" style={{ padding: '12px 28px', fontSize: 15 }}>
-            Log in
-          </button>
-        </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>

@@ -4,6 +4,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import ThemeToggle from "./components/ThemeToggle";
 import NotificationBell from "./components/NotificationBell";
 import Logo from "./components/Logo";
+import LogoutButton from "./components/LogoutButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <Logo />
+          <LogoutButton />
           {children}
           <NotificationBell />
           <ThemeToggle />
