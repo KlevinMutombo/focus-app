@@ -140,7 +140,7 @@ export default function ShopPage() {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Premium avatars</h4>
+        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Premium avatars (Coming soon...)</h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 12 }}>
           {shopAvatars.map((av) => {
             const isEquipped = profile?.avatar_id === av.id

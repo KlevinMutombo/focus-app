@@ -198,12 +198,9 @@ export default function AvatarPage() {
       <div className="card" style={{ textAlign: 'center', marginTop: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <h4 style={{ fontSize: 15 }}>Accessories</h4>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setShowAccessoryGrid(!showAccessoryGrid)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
-              {showAccessoryGrid ? 'Collapse' : 'Expand'}
-            </button>
-            <a href="/shop" style={{ fontSize: 12 }}>Shop →</a>
-          </div>
+          <button onClick={() => setShowAccessoryGrid(!showAccessoryGrid)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+            {showAccessoryGrid ? 'Collapse' : 'Expand'}
+          </button>
         </div>
 
         {accessories.length === 0 ? (
@@ -284,6 +281,10 @@ export default function AvatarPage() {
             </>
           )
         })()}
+
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+          <a href="/shop" style={{ fontSize: 12 }}>Browse more in shop →</a>
+        </div>
       </div>
     </div>
   )
