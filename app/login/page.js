@@ -73,7 +73,7 @@ function LoginForm() {
         return
       }
 
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -84,6 +84,9 @@ function LoginForm() {
 
       if (error) {
         setMessage(error.message)
+      } else if (data?.user && data.user.identities && data.user.identities.length === 0) {
+        // Supabase's signal that this email is already registered
+        setMessage('An account with this email already exists. Try logging in instead.')
       } else {
         setMessage('Check your email to confirm your account.')
       }
