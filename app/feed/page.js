@@ -34,7 +34,7 @@ export default function FeedPage() {
   async function loadFeed() {
     const { data: postsData } = await supabase
       .from('activity_posts')
-      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles(username, avatars(color, color2, species), equippedAccessory:accessories(type))')
+      .select('id, user_id, is_private, created_at, sessions(label, minutes, xp_earned), profiles!inner(username, avatars(color, color2, species), equippedAccessory:accessories(type))')
       .order('created_at', { ascending: false })
       .limit(30)
 
@@ -57,7 +57,7 @@ export default function FeedPage() {
 
       const { data: commentsData } = await supabase
         .from('comments')
-        .select('id, post_id, user_id, content, created_at, profiles(username)')
+        .select('id, post_id, user_id, content, created_at, profiles!inner(username)')
         .in('post_id', postIds)
         .order('created_at', { ascending: true })
 
