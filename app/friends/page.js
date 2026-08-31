@@ -50,7 +50,7 @@ export default function FriendsPage() {
   async function loadPending(userId) {
     const { data } = await supabase
       .from('friendships')
-      .select('id, user_id, profiles!friendships_user_id_fkey(username)')
+      .select('id, user_id, profiles!friendships_user_id_fkey!inner(username)')
       .eq('friend_id', userId)
       .eq('status', 'pending')
     setPending(data || [])
@@ -68,13 +68,13 @@ export default function FriendsPage() {
   async function loadFriends(userId) {
     const { data: sent } = await supabase
       .from('friendships')
-      .select('id, friend_id, profiles!friendships_friend_id_fkey(id, username, xp, avatars(color, color2, species))')
+      .select('id, friend_id, profiles!friendships_friend_id_fkey!inner(id, username, xp, avatars(color, color2, species))')
       .eq('user_id', userId)
       .eq('status', 'accepted')
 
     const { data: received } = await supabase
       .from('friendships')
-      .select('id, user_id, profiles!friendships_user_id_fkey(id, username, xp, avatars(color, color2, species))')
+      .select('id, user_id, profiles!friendships_user_id_fkey!inner(id, username, xp, avatars(color, color2, species))')
       .eq('friend_id', userId)
       .eq('status', 'accepted')
 
