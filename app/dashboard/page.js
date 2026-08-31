@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
 import Character from '../components/Character'
+import OnboardingTour from '../components/OnboardingTour'
 
 function fmtTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0')
@@ -248,6 +249,7 @@ export default function Dashboard() {
       </div>
 
       <Nav />
+      {profile?.avatarInfo && <OnboardingTour avatarInfo={profile.avatarInfo} />}
 
       {finishing ? (
         <div className="card" style={{ textAlign: 'center', padding: 40 }}>

@@ -34,8 +34,8 @@ export default function Nav() {
       flexWrap: 'wrap',
       alignItems: 'center',
     }}>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/friends" style={{ position: 'relative' }}>
+      <a id="tour-dashboard" href="/dashboard">Dashboard</a>
+      <a id="tour-friends" href="/friends" style={{ position: 'relative' }}>
         Friends
         {pendingCount > 0 && (
           <span style={{
@@ -57,13 +57,13 @@ export default function Nav() {
           </span>
         )}
       </a>
-      <a href="/feed">Feed</a>
-      <a href="/planner">Planner</a>
-      <a href="/calendar">Calendar</a>
-      <a href="/avatar">Avatar</a>
-      <a href="/shop">Shop</a>
-      {username && <a href={`/profile/${username}`}>Profile</a>}
-      <a href="/settings">Settings</a>
+      <a id="tour-feed" href="/feed">Feed</a>
+      <a id="tour-planner" href="/planner">Planner</a>
+      <a id="tour-calendar" href="/calendar">Calendar</a>
+      <a id="tour-avatar" href="/avatar">Avatar</a>
+      <a id="tour-shop" href="/shop">Shop</a>
+      {username && <a id="tour-profile" href={`/profile/${username}`}>Profile</a>}
+      <a id="tour-settings" href="/settings">Settings</a>
     </div>
   )
 }
