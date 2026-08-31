@@ -335,7 +335,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40 }}>Loading...</div>}>
+    <Suspense fallback={<Loading />}>
       <LoginForm />
     </Suspense>
   )

@@ -6,6 +6,7 @@ import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
 import Character from '../components/Character'
 import OnboardingTour from '../components/OnboardingTour'
+import Loading from '../components/Loading'
 
 function fmtTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0')
@@ -228,7 +229,7 @@ export default function Dashboard() {
     await loadSessions(user.id)
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   return (
     <div className="page-fade" style={{ maxWidth: 520, margin: '48px auto', padding: '0 20px' }}>

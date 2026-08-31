@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
 import Character from '../components/Character'
+import Loading from '../components/Loading'
 
 export default function AvatarPage() {
   const router = useRouter()
@@ -84,7 +85,7 @@ export default function AvatarPage() {
     setProfile({ ...profile, equipped_accessory_id: newId, equippedAccessory: newId ? accessory : null })
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   const currentAvatarInList = avatars[avatarIndex]
   const equippedType = profile?.equippedAccessory?.type || null

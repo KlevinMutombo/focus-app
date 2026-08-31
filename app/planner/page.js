@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
+import Loading from '../components/Loading'
 
 function getUrgency(dueDate) {
   if (!dueDate) return { level: 'none', label: '', days: Infinity }
@@ -116,7 +117,7 @@ export default function PlannerPage() {
     await loadTasks(user.id)
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   const topLevelTasks = tasks.filter((t) => !t.parent_task_id)
   const getSubtasks = (parentId) => tasks.filter((t) => t.parent_task_id === parentId)

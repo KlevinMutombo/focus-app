@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase'
 import Character from '../../components/Character'
+import Loading from '../../components/Loading'
 
 export default function OnboardingAvatarPage() {
   const router = useRouter()
@@ -59,7 +60,7 @@ export default function OnboardingAvatarPage() {
     router.push('/dashboard')
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   const tierLabels = { starter: 'Starter', og: 'OG Exclusive' }
   const grouped = { starter: [], og: [] }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
+import Loading from '../components/Loading'
 
 function toDateKey(date) {
   return date.toISOString().split('T')[0]
@@ -59,7 +60,7 @@ export default function CalendarPage() {
     await loadTasks(user.id)
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()

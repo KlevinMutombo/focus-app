@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '../../../lib/supabase'
 import Nav from '../../components/Nav'
 import Character from '../../components/Character'
+import Loading from '../../components/Loading'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -122,7 +123,7 @@ export default function ProfilePage() {
     setFriendCount((c) => Math.max(c - 1, 0))
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
   if (notFound) return (
     <div className="page-fade" style={{ maxWidth: 480, margin: '48px auto', padding: '0 20px' }}>
       <Nav />

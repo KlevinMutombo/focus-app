@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase'
+import Loading from '../../components/Loading'
 
 export default function OnboardingUsernamePage() {
   const router = useRouter()
@@ -85,7 +86,7 @@ export default function OnboardingUsernamePage() {
     }
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   return (
     <div className="page-fade" style={{ maxWidth: 400, margin: '80px auto', padding: '0 20px' }}>

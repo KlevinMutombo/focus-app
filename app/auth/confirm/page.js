@@ -74,7 +74,7 @@ function ConfirmInner() {
 
 export default function ConfirmPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40 }}>Loading...</div>}>
+    <Suspense fallback={<Loading />}>
       <ConfirmInner />
     </Suspense>
   )

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
 import Character from '../components/Character'
+import Loading from '../components/Loading'
 
 export default function ShopPage() {
   const router = useRouter()
@@ -82,7 +83,7 @@ export default function ShopPage() {
     setMessage(`Purchased and equipped ${avatar.name}!`)
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (loading) return <Loading />
 
   const equippedType = profile?.equippedAccessory?.type || null
 
