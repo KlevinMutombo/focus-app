@@ -6,6 +6,15 @@ import { createClient } from '../../lib/supabase'
 import Nav from '../components/Nav'
 import Loading from '../components/Loading'
 
+function checkPasswordStrength(password) {
+  if (password.length < 8) return 'Password must be at least 8 characters.'
+  if (!/[A-Z]/.test(password)) return 'Password must include an uppercase letter.'
+  if (!/[a-z]/.test(password)) return 'Password must include a lowercase letter.'
+  if (!/[0-9]/.test(password)) return 'Password must include a number.'
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return 'Password must include a special character.'
+  return null
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -18,6 +27,8 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
+
+  const [blockedUsers, setBlockedUsers] = useState([])
 
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -40,10 +51,26 @@ export default function SettingsPage() {
 
       setCurrentUsername(profile?.username || '')
       setUsername(profile?.username || '')
+
+      await loadBlockedUsers(user.id)
+
       setLoading(false)
     }
     load()
   }, [])
+
+  async function loadBlockedUsers(userId) {
+    const { data } = await supabase
+      .from('blocked_users')
+      .select('id, blocked_id, blocked:profiles!blocked_users_blocked_id_fkey(username)')
+      .eq('blocker_id', userId)
+    setBlockedUsers(data || [])
+  }
+
+  async function unblockUser(blockedId) {
+    await supabase.from('blocked_users').delete().eq('blocker_id', user.id).eq('blocked_id', blockedId)
+    await loadBlockedUsers(user.id)
+  }
 
   async function handleSave(e) {
     e.preventDefault()
@@ -93,8 +120,9 @@ export default function SettingsPage() {
     e.preventDefault()
     setPasswordMessage('')
 
-    if (newPassword.length < 6) {
-      setPasswordMessage('Password must be at least 6 characters.')
+    const strengthError = checkPasswordStrength(newPassword)
+    if (strengthError) {
+      setPasswordMessage(strengthError)
       return
     }
     if (newPassword !== confirmNewPassword) {
@@ -171,9 +199,9 @@ export default function SettingsPage() {
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="new username"
+            placeholder="New Username"
           />
-          <button type="submit">Save username</button>
+          <button type="submit">Save Username</button>
         </form>
 
         {message && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{message}</p>}
@@ -187,18 +215,37 @@ export default function SettingsPage() {
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="new password"
+            placeholder="New Password"
           />
           <input
             type="password"
             value={confirmNewPassword}
             onChange={(e) => setConfirmNewPassword(e.target.value)}
-            placeholder="confirm new password"
+            placeholder="Confirm New Password"
           />
-          <button type="submit">Update password</button>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
+            At least 8 characters, with an uppercase letter, a lowercase letter, a number, and a special character.
+          </p>
+          <button type="submit">Update Password</button>
         </form>
 
         {passwordMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{passwordMessage}</p>}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Blocked Users</h4>
+        {blockedUsers.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>You haven't blocked anyone.</p>
+        ) : (
+          blockedUsers.map((b) => (
+            <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', fontSize: 13 }}>
+              <span>{b.blocked?.username}</span>
+              <button onClick={() => unblockUser(b.blocked_id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+                Unblock
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="card" style={{ marginTop: 16, textAlign: 'center' }}>
@@ -209,7 +256,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="card" style={{ marginTop: 16, borderColor: 'var(--danger)' }}>
-        <h4 style={{ fontSize: 16, marginBottom: 8, color: 'var(--danger)' }}>Delete account</h4>
+        <h4 style={{ fontSize: 16, marginBottom: 8, color: 'var(--danger)' }}>Delete Account</h4>
         <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
           This permanently deletes your account, sessions, tasks, friendships, and all associated data. This cannot be undone.
         </p>
@@ -228,7 +275,7 @@ export default function SettingsPage() {
             disabled={deleting}
             style={{ background: 'var(--danger)', color: '#fff', whiteSpace: 'nowrap' }}
           >
-            {deleting ? 'Deleting...' : 'Delete my account'}
+            {deleting ? 'Deleting...' : 'Delete My Account'}
           </button>
         </div>
         {deleteMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--danger)' }}>{deleteMessage}</p>}
