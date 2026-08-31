@@ -60,6 +60,13 @@ export default function CalendarPage() {
     await loadTasks(user.id)
   }
 
+  async function deleteTask(taskId) {
+    const confirmed = window.confirm('Delete this task?')
+    if (!confirmed) return
+    await supabase.from('tasks').delete().eq('id', taskId)
+    await loadTasks(user.id)
+  }
+
   if (loading) return <Loading />
 
   const year = viewDate.getFullYear()
@@ -141,6 +148,7 @@ export default function CalendarPage() {
                     borderRadius: 4,
                     background: t.completed ? 'rgba(95, 184, 138, 0.15)' : 'rgba(201, 138, 75, 0.15)',
                     color: t.completed ? 'var(--success)' : 'var(--accent)',
+                    textDecoration: t.completed ? 'line-through' : 'none',
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',
@@ -164,8 +172,13 @@ export default function CalendarPage() {
           <h4 style={{ fontSize: 16, marginBottom: 12 }}>{selectedDay}</h4>
 
           {(tasksByDate[selectedDay] || []).map((t) => (
-            <div key={t.id} style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
-              {t.title} {t.course && <span style={{ color: 'var(--text-muted)' }}>— {t.course}</span>}
+            <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ textDecoration: t.completed ? 'line-through' : 'none', color: t.completed ? 'var(--text-muted)' : 'var(--text)' }}>
+                {t.title} {t.course && <span style={{ color: 'var(--text-muted)' }}>— {t.course}</span>}
+              </span>
+              <button onClick={() => deleteTask(t.id)} className="btn-secondary" style={{ fontSize: 10, padding: '2px 8px' }}>
+                Delete
+              </button>
             </div>
           ))}
 
