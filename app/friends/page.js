@@ -253,7 +253,7 @@ export default function FriendsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span className="mono" style={{ color: 'var(--text-muted)', width: 20 }}>#{i + 1}</span>
               {f.avatars && <Character color={f.avatars.color} color2={f.avatars.color2} species={f.avatars.species} size={24} />}
-              {f.username === 'You' ? (
+              {f.id === user.id ? (
                 <span>{f.username}</span>
               ) : (
                 <a href={`/profile/${f.username}`}>{f.username}</a>
@@ -261,7 +261,7 @@ export default function FriendsPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span className="mono" style={{ color: 'var(--accent)' }}>{f.xp} xp</span>
-              {f.username !== 'You' && (
+              {f.id !== user.id && (
                 <button onClick={() => removeFriend(f.id)} className="btn-secondary" style={{ fontSize: 10, padding: '2px 8px' }}>
                   Remove
                 </button>

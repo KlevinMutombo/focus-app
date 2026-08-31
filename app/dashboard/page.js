@@ -139,14 +139,17 @@ export default function Dashboard() {
   }
 
   async function handleEndClick() {
-    const minutes = Math.floor(seconds / 60)
-    if (minutes < 1) {
+    if (seconds < 1) {
       setRunning(false)
       setSeconds(0)
       setDistractions(0)
       return
     }
-    const confirmed = window.confirm(`End this session? You've focused for ${minutes} minute${minutes === 1 ? '' : 's'}.`)
+    const minutes = Math.floor(seconds / 60)
+    const durationLabel = minutes >= 1
+      ? `${minutes} minute${minutes === 1 ? '' : 's'}`
+      : `${seconds} second${seconds === 1 ? '' : 's'}`
+    const confirmed = window.confirm(`End this session? You've focused for ${durationLabel}.`)
     if (!confirmed) return
     setFinishing(true)
     await endSession()
@@ -157,8 +160,8 @@ export default function Dashboard() {
     setRunning(false)
     const minutes = Math.floor(seconds / 60)
 
-    const distractionPenalty = Math.min(distractions * 2, minutes)
-    const earnedXp = Math.max(minutes - distractionPenalty, Math.floor(minutes * 0.2))
+    const distractionPenalty = Math.min(distractions * 120, seconds)
+    const earnedXp = Math.max(seconds - distractionPenalty, Math.floor(seconds * 0.2))
 
     const { data: newSession } = await supabase
       .from('sessions')
@@ -183,6 +186,7 @@ export default function Dashboard() {
     setProfile({ ...profile, xp: newXp })
 
     await loadSessions(user.id, showAllSessions)
+    setJustFinished({ ...newSession, postId: newPost.id, seconds })
     setSeconds(0)
     setDistractions(0)
     setLabel('')
@@ -263,9 +267,12 @@ export default function Dashboard() {
         </div>
       ) : justFinished ? (
         (() => {
-          const baseXp = justFinished.minutes
+          const baseXp = justFinished.seconds
           const penalty = Math.max(baseXp - justFinished.xp_earned, 0)
           const hadPenalty = justFinished.distractions > 0 && penalty > 0
+          const focusedTimeLabel = justFinished.seconds < 60
+            ? `${justFinished.seconds}s`
+            : `${justFinished.minutes}m`
 
           return (
             <div className="card-raised" style={{
@@ -280,7 +287,7 @@ export default function Dashboard() {
               <div className="mono" style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'left', maxWidth: 220, margin: '0 auto 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Focused time</span>
-                  <span>{justFinished.minutes}m</span>
+                  <span>{focusedTimeLabel}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Base XP</span>
