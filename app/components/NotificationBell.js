@@ -67,14 +67,32 @@ export default function NotificationBell() {
       .order('created_at', { ascending: false })
       .limit(20)
 
+    const { data: dismissed } = await supabase
+      .from('dismissed_notifications')
+      .select('notification_type, source_id')
+      .eq('user_id', userId)
+
+    const dismissedKeys = new Set((dismissed || []).map(d => `${d.notification_type}-${d.source_id}`))
+
     const combined = [
       ...kudosData.map(k => ({ type: 'kudos', ...k })),
       ...commentsData.map(c => ({ type: 'comment', ...c })),
       ...(friendRequests || []).map(f => ({ type: 'friend_request', ...f })),
-    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    ]
+      .filter(n => !dismissedKeys.has(`${n.type}-${n.id}`))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
     setNotifications(combined)
     setUnseenCount(combined.filter(n => new Date(n.created_at) > new Date(lastChecked)).length)
+  }
+
+  async function dismissNotification(n) {
+    setNotifications((prev) => prev.filter((x) => !(x.type === n.type && x.id === n.id)))
+    await supabase.from('dismissed_notifications').insert({
+      user_id: user.id,
+      notification_type: n.type,
+      source_id: n.id,
+    })
   }
 
   async function handleOpen() {
@@ -102,16 +120,26 @@ export default function NotificationBell() {
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Nothing yet</p>
           )}
           {notifications.map((n) => (
-            <div key={`${n.type}-${n.id}`} style={{ fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
-              {n.type === 'kudos' && (
-                <span><b>{n.profiles?.username}</b> boosted you 🚀</span>
-              )}
-              {n.type === 'comment' && (
-                <span><b>{n.profiles?.username}</b> commented: "{n.content}"</span>
-              )}
-              {n.type === 'friend_request' && (
-                <span><b>{n.profiles?.username}</b> sent you a friend request</span>
-              )}
+            <div key={`${n.type}-${n.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+              <div>
+                {n.type === 'kudos' && (
+                  <span><b>{n.profiles?.username}</b> boosted you 🚀</span>
+                )}
+                {n.type === 'comment' && (
+                  <span><b>{n.profiles?.username}</b> commented: "{n.content}"</span>
+                )}
+                {n.type === 'friend_request' && (
+                  <span><b>{n.profiles?.username}</b> sent you a friend request</span>
+                )}
+              </div>
+              <button
+                onClick={() => dismissNotification(n)}
+                className="icon-btn"
+                style={{ fontSize: 12, lineHeight: 1, padding: '2px 4px', flexShrink: 0, color: 'var(--text-muted)' }}
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>
