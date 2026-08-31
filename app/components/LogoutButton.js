@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 
 export default function LogoutButton() {
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
   const [loggedIn, setLoggedIn] = useState(false)
+  const [checked, setChecked] = useState(false)
 
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       setLoggedIn(!!user)
+      setChecked(true)
     }
     check()
 
@@ -28,11 +31,16 @@ export default function LogoutButton() {
     router.push('/login?mode=login')
   }
 
-  if (!loggedIn) return null
+  function handleLoginClick() {
+    router.push('/login?mode=login')
+  }
+
+  if (!checked) return null
+  if (pathname === '/') return null // landing page already has its own Get started / Log in buttons
 
   return (
     <button
-      onClick={handleLogout}
+      onClick={loggedIn ? handleLogout : handleLoginClick}
       className="btn-secondary"
       style={{
         position: 'fixed',
@@ -43,7 +51,7 @@ export default function LogoutButton() {
         zIndex: 100,
       }}
     >
-      Log out
+      {loggedIn ? 'Log out' : 'Log in'}
     </button>
   )
 }
