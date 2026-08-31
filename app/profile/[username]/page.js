@@ -146,12 +146,14 @@ export default function ProfilePage() {
       blocked_username: profile.username,
     })
   
-    if (friendshipId) {
-      await supabase.from('friendships').delete().eq('id', friendshipId)
-    }
+    await supabase
+      .from('friendships')
+      .delete()
+      .or(`and(user_id.eq.${currentUser.id},friend_id.eq.${profile.id}),and(user_id.eq.${profile.id},friend_id.eq.${currentUser.id})`)
   
     setIsBlocked(true)
     setIsFriend(false)
+    setIsPending(false)
     setFriendshipId(null)
     setShowMenu(false)
   }
