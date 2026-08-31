@@ -14,7 +14,6 @@ export default function ShopPage() {
   const [profile, setProfile] = useState(null)
   const [accessories, setAccessories] = useState([])
   const [ownedAccessoryIds, setOwnedAccessoryIds] = useState([])
-  const [shopAvatars, setShopAvatars] = useState([])
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -45,9 +44,6 @@ export default function ShopPage() {
 
     const { data: owned } = await supabase.from('owned_accessories').select('accessory_id').eq('user_id', userId)
     setOwnedAccessoryIds((owned || []).map(o => o.accessory_id))
-
-    const { data: shopAv } = await supabase.from('avatars').select('*').eq('tier', 'shop')
-    setShopAvatars(shopAv || [])
   }
 
   async function buyAccessory(accessory) {
@@ -69,18 +65,6 @@ export default function ShopPage() {
     const newId = isEquipped ? null : accessory.id
     await supabase.from('profiles').update({ equipped_accessory_id: newId }).eq('id', user.id)
     setProfile({ ...profile, equipped_accessory_id: newId, equippedAccessory: newId ? { type: accessory.type } : null })
-  }
-
-  async function buyAvatar(avatar) {
-    setMessage('')
-    if (profile.xp < avatar.price_xp) {
-      setMessage("You don't have enough XP for that yet.")
-      return
-    }
-    const newXp = profile.xp - avatar.price_xp
-    await supabase.from('profiles').update({ xp: newXp, avatar_id: avatar.id }).eq('id', user.id)
-    setProfile({ ...profile, xp: newXp, avatar_id: avatar.id, avatarInfo: { color: avatar.color, color2: avatar.color2, species: avatar.species } })
-    setMessage(`Purchased and equipped ${avatar.name}!`)
   }
 
   if (loading) return <Loading />
@@ -132,28 +116,6 @@ export default function ShopPage() {
                 ) : (
                   <button onClick={() => equipAccessory(acc)} className="btn-secondary" style={{ marginTop: 8, fontSize: 11, padding: '5px 10px' }}>
                     Equip
-                  </button>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Premium avatars (Coming soon...)</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 12 }}>
-          {shopAvatars.map((av) => {
-            const isEquipped = profile?.avatar_id === av.id
-            return (
-              <div key={av.id} style={{ textAlign: 'center', border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
-                <Character color={av.color} color2={av.color2} species={av.species} size={48} />
-                <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>{av.name}</div>
-                {isEquipped ? (
-                  <div style={{ marginTop: 8, fontSize: 11, color: 'var(--accent)' }}>Equipped</div>
-                ) : (
-                  <button onClick={() => buyAvatar(av)} style={{ marginTop: 8, fontSize: 11, padding: '5px 10px' }}>
-                    {av.price_xp} XP
                   </button>
                 )}
               </div>
