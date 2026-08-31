@@ -42,7 +42,7 @@ export default function NotificationBell() {
     if (postIds.length > 0) {
       const { data: k } = await supabase
         .from('kudos')
-        .select('id, post_id, user_id, created_at, profiles(username)')
+        .select('id, post_id, user_id, created_at, profiles!inner(username)')
         .in('post_id', postIds)
         .neq('user_id', userId)
         .order('created_at', { ascending: false })
@@ -51,7 +51,7 @@ export default function NotificationBell() {
 
       const { data: c } = await supabase
         .from('comments')
-        .select('id, post_id, user_id, content, created_at, profiles(username)')
+        .select('id, post_id, user_id, content, created_at, profiles!inner(username)')
         .in('post_id', postIds)
         .neq('user_id', userId)
         .order('created_at', { ascending: false })
@@ -61,7 +61,7 @@ export default function NotificationBell() {
 
     const { data: friendRequests } = await supabase
       .from('friendships')
-      .select('id, created_at, profiles!friendships_user_id_fkey(username)')
+      .select('id, created_at, profiles!friendships_user_id_fkey!inner(username)')
       .eq('friend_id', userId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
