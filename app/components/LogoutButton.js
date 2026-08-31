@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 
 export default function LogoutButton() {
-  const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
   const [loggedIn, setLoggedIn] = useState(false)

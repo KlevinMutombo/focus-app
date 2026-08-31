@@ -60,11 +60,28 @@ export default function SettingsPage() {
   }, [])
 
   async function loadBlockedUsers(userId) {
-    const { data } = await supabase
+    const { data: blocks } = await supabase
       .from('blocked_users')
-      .select('id, blocked_id, blocked:profiles!blocked_users_blocked_id_fkey(username)')
+      .select('id, blocked_id')
       .eq('blocker_id', userId)
-    setBlockedUsers(data || [])
+
+    if (!blocks || blocks.length === 0) {
+      setBlockedUsers([])
+      return
+    }
+
+    const blockedIds = blocks.map(b => b.blocked_id)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', blockedIds)
+
+    const merged = blocks.map(b => ({
+      ...b,
+      blocked: profiles?.find(p => p.id === b.blocked_id) || null,
+    }))
+
+    setBlockedUsers(merged)
   }
 
   async function unblockUser(blockedId) {
@@ -239,7 +256,7 @@ export default function SettingsPage() {
         ) : (
           blockedUsers.map((b) => (
             <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', fontSize: 13 }}>
-              <span>{b.blocked?.username}</span>
+              <span>{b.blocked?.username || 'Unknown user'}</span>
               <button onClick={() => unblockUser(b.blocked_id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
                 Unblock
               </button>
