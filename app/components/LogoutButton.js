@@ -28,15 +28,15 @@ export default function LogoutButton() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    router.push('/login?mode=login')
+    window.location.href = '/login?mode=login'
   }
 
   function handleLoginClick() {
-    router.push('/login?mode=login')
+    window.location.href = '/login?mode=login'
   }
 
   if (!checked) return null
-  if (pathname === '/') return null // landing page already has its own Get started / Log in buttons
+  if (pathname === '/' || pathname === '/login') return null
 
   return (
     <button
