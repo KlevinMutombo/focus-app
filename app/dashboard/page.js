@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [finishing, setFinishing] = useState(false)
   const [justFinished, setJustFinished] = useState(null)
   const [expandedSession, setExpandedSession] = useState(null)
+  const [showAllSessions, setShowAllSessions] = useState(false)
   const intervalRef = useRef(null)
   const wasHiddenRef = useRef(false)
 
@@ -74,13 +75,13 @@ export default function Dashboard() {
     load()
   }, [])
 
-  async function loadSessions(userId) {
+  async function loadSessions(userId, showAll = false) {
     const { data: sessionData } = await supabase
       .from('sessions')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .limit(10)
+      .limit(showAll ? 1000 : 10)
     setSessions(sessionData || [])
 
     if (sessionData && sessionData.length > 0) {
@@ -181,9 +182,7 @@ export default function Dashboard() {
     await supabase.from('profiles').update({ xp: newXp }).eq('id', user.id)
     setProfile({ ...profile, xp: newXp })
 
-    await loadSessions(user.id)
-
-    setJustFinished({ ...newSession, postId: newPost.id })
+    await loadSessions(user.id, showAllSessions)
     setSeconds(0)
     setDistractions(0)
     setLabel('')
@@ -193,7 +192,7 @@ export default function Dashboard() {
     if (!justFinished) return
     await supabase.from('activity_posts').update({ is_private: false }).eq('id', justFinished.postId)
     setJustFinished(null)
-    await loadSessions(user.id)
+    await loadSessions(user.id, showAllSessions)
   }
 
   function dismissShare() {
@@ -204,7 +203,7 @@ export default function Dashboard() {
     const post = postsBySession[sessionId]
     if (!post) return
     await supabase.from('activity_posts').update({ is_private: !post.is_private }).eq('id', post.id)
-    await loadSessions(user.id)
+    await loadSessions(user.id, showAllSessions)
   }
 
   async function removeFromFeed(sessionId) {
@@ -213,7 +212,7 @@ export default function Dashboard() {
     const confirmed = window.confirm('Remove this from the feed? Your session and XP stay intact.')
     if (!confirmed) return
     await supabase.from('activity_posts').delete().eq('id', post.id)
-    await loadSessions(user.id)
+    await loadSessions(user.id, showAllSessions)
   }
 
   async function deleteSession(sessionId, xpEarned) {
@@ -226,7 +225,13 @@ export default function Dashboard() {
     await supabase.from('profiles').update({ xp: newXp }).eq('id', user.id)
     setProfile({ ...profile, xp: newXp })
 
-    await loadSessions(user.id)
+    await loadSessions(user.id, showAllSessions)
+  }
+
+  async function toggleShowAllSessions() {
+    const next = !showAllSessions
+    setShowAllSessions(next)
+    await loadSessions(user.id, next)
   }
 
   if (loading) return <Loading />
@@ -395,6 +400,15 @@ export default function Dashboard() {
             </div>
           )
         })}
+        {sessions.length > 0 && (sessions.length >= 10 || showAllSessions) && (
+          <button
+            onClick={toggleShowAllSessions}
+            className="btn-secondary"
+            style={{ fontSize: 12, marginTop: 12 }}
+          >
+            {showAllSessions ? 'Show less' : 'Show all'}
+          </button>
+        )}
       </div>
     </div>
   )
