@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
+import Loading from '../components/Loading'
 
 function checkPasswordStrength(password) {
   if (password.length < 8) return 'Password must be at least 8 characters.'
