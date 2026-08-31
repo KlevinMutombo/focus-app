@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '../../../lib/supabase'
+import Loading from '../../components/Loading'
 
 function ConfirmInner() {
   const supabase = createClient()
