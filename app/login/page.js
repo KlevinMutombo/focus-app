@@ -87,7 +87,7 @@ function LoginForm() {
       } else if (data?.user && data.user.identities && data.user.identities.length === 0) {
         setMessage('An account with this email already exists. Try logging in instead.')
       } else {
-        setMessage('Check your email to confirm your account. This page will update automatically once confirmed.')
+        setMessage("Check your email to confirm your account. If you're confirming on this device, this page updates automatically. If you confirm on another device (like your phone), just come back and log in.")
 
         supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'SIGNED_IN' && session) {
