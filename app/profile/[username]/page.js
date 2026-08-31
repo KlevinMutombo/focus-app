@@ -139,16 +139,17 @@ export default function ProfilePage() {
   async function handleBlock() {
     const confirmed = window.confirm(`Block ${profile.username}? They won't be able to see your activity or interact with you, and you won't see theirs.`)
     if (!confirmed) return
-
+  
     await supabase.from('blocked_users').insert({
       blocker_id: currentUser.id,
       blocked_id: profile.id,
+      blocked_username: profile.username,
     })
-
+  
     if (friendshipId) {
       await supabase.from('friendships').delete().eq('id', friendshipId)
     }
-
+  
     setIsBlocked(true)
     setIsFriend(false)
     setFriendshipId(null)
