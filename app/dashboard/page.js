@@ -53,6 +53,11 @@ export default function Dashboard() {
         .eq('id', user.id)
         .single()
 
+      if (!profileData?.username_chosen) {
+        router.push('/onboarding/username')
+        return
+      }
+
       if (!profileData?.avatar_id) {
         router.push('/onboarding/avatar')
         return

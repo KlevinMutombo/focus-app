@@ -1,11 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase'
 
 export default function EmailConfirmedPage() {
-  const router = useRouter()
   const supabase = createClient()
   const [status, setStatus] = useState('checking')
 
@@ -31,24 +29,18 @@ export default function EmailConfirmedPage() {
         {status === 'confirmed' && (
           <>
             <h2 style={{ fontSize: 22, marginBottom: 10 }}>Email confirmed 🎉</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20 }}>
-              Your account is ready. Let's get you set up.
+            <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+              You can close this tab and return to the page where you signed up — it'll pick up automatically.
             </p>
-            <button onClick={() => router.push('/dashboard')} style={{ padding: '10px 24px' }}>
-              Continue
-            </button>
           </>
         )}
 
         {status === 'failed' && (
           <>
             <h2 style={{ fontSize: 22, marginBottom: 10 }}>Something went wrong</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
               We couldn't confirm your email automatically. Try logging in directly — your account may already be confirmed.
             </p>
-            <button onClick={() => router.push('/login?mode=login')} style={{ padding: '10px 24px' }}>
-              Go to login
-            </button>
           </>
         )}
       </div>

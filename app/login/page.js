@@ -85,10 +85,15 @@ function LoginForm() {
       if (error) {
         setMessage(error.message)
       } else if (data?.user && data.user.identities && data.user.identities.length === 0) {
-        // Supabase's signal that this email is already registered
         setMessage('An account with this email already exists. Try logging in instead.')
       } else {
-        setMessage('Check your email to confirm your account.')
+        setMessage('Check your email to confirm your account. This page will update automatically once confirmed.')
+
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            router.push('/dashboard')
+          }
+        })
       }
     } else {
       const input = emailOrUsername.trim()
@@ -110,8 +115,14 @@ function LoginForm() {
         setMessage(error.message)
       } else {
         const { data: { user } } = await supabase.auth.getUser()
-        const { data: profileData } = await supabase.from('profiles').select('avatar_id').eq('id', user.id).single()
-        router.push(profileData?.avatar_id ? '/dashboard' : '/onboarding/avatar')
+        const { data: profileData } = await supabase.from('profiles').select('avatar_id, username_chosen').eq('id', user.id).single()
+        if (!profileData?.username_chosen) {
+          router.push('/onboarding/username')
+        } else if (!profileData?.avatar_id) {
+          router.push('/onboarding/avatar')
+        } else {
+          router.push('/dashboard')
+        }
       }
     }
   }
