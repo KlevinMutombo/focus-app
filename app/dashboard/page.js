@@ -387,4 +387,14 @@ export default function Dashboard() {
                       <button onClick={() => deleteSession(s.id, s.xp_earned)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', color: 'var(--danger)' }}>
                         Delete session
                       </button>
-                 
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
