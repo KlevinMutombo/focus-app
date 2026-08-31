@@ -209,7 +209,7 @@ export default function ProfilePage() {
 
       <div className="card" style={{ marginTop: 20, textAlign: 'center', padding: 32, position: 'relative' }}>
         {!isOwnProfile && (
-          <div style={{ position: 'absolute', top: 12, right: 12 }}>
+          <div style={{ position: 'absolute', top: 12, left: 12 }}>
             <button
               onClick={() => setShowMenu(!showMenu)}
               className="btn-secondary"
