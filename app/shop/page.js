@@ -52,10 +52,15 @@ export default function ShopPage() {
       setMessage("You don't have enough XP for that yet.")
       return
     }
-    await supabase.from('owned_accessories').insert({ user_id: user.id, accessory_id: accessory.id })
-    const newXp = profile.xp - accessory.price_xp
-    await supabase.from('profiles').update({ xp: newXp }).eq('id', user.id)
-    setProfile({ ...profile, xp: newXp })
+
+    const { error } = await supabase.rpc('purchase_accessory', { p_accessory_id: accessory.id })
+    if (error) {
+      setMessage(error.message.includes('Not enough XP') ? "You don't have enough XP for that yet." : "Something went wrong: " + error.message)
+      return
+    }
+
+    const { data: updatedProfile } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+    setProfile({ ...profile, xp: updatedProfile?.xp ?? profile.xp })
     setOwnedAccessoryIds((prev) => [...prev, accessory.id])
     setMessage(`Purchased ${accessory.name}!`)
   }

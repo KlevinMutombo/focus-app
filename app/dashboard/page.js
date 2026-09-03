@@ -160,35 +160,27 @@ export default function Dashboard() {
 
   async function endSession() {
     setRunning(false)
-    const minutes = Math.floor(seconds / 60)
+    const secondsElapsed = seconds
 
-    const distractionPenalty = Math.min(distractions * 120, seconds)
-    const earnedXp = Math.max(seconds - distractionPenalty, Math.floor(seconds * 0.2))
+    const { data: result, error } = await supabase.rpc('complete_focus_session', {
+      p_label: label.trim() || 'focus session',
+      p_minutes: Math.floor(secondsElapsed / 60),
+      p_seconds: secondsElapsed,
+      p_distractions: distractions,
+    })
 
-    const { data: newSession } = await supabase
-      .from('sessions')
-      .insert({
-        user_id: user.id,
-        label: label.trim() || 'focus session',
-        minutes,
-        xp_earned: earnedXp,
-        distractions,
-      })
-      .select()
-      .single()
+    if (error || !result || result.length === 0) {
+      alert('Something went wrong saving your session: ' + (error?.message || 'unknown error'))
+      return
+    }
 
-    const { data: newPost } = await supabase
-      .from('activity_posts')
-      .insert({ session_id: newSession.id, user_id: user.id, is_private: true })
-      .select()
-      .single()
+    const newSession = result[0]
 
-    const newXp = (profile.xp || 0) + earnedXp
-    await supabase.from('profiles').update({ xp: newXp }).eq('id', user.id)
-    setProfile({ ...profile, xp: newXp })
+    const { data: updatedProfile } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+    setProfile({ ...profile, xp: updatedProfile?.xp ?? profile.xp })
 
     await loadSessions(user.id, showAllSessions)
-    setJustFinished({ ...newSession, postId: newPost.id, seconds })
+    setJustFinished({ ...newSession, postId: newSession.post_id, seconds: secondsElapsed })
     setSeconds(0)
     setDistractions(0)
     setLabel('')
@@ -225,11 +217,14 @@ export default function Dashboard() {
     const confirmed = window.confirm('Delete this session? This will also remove its XP and any feed post.')
     if (!confirmed) return
 
-    await supabase.from('sessions').delete().eq('id', sessionId)
+    const { error } = await supabase.rpc('delete_focus_session', { p_session_id: sessionId })
+    if (error) {
+      alert('Delete failed: ' + error.message)
+      return
+    }
 
-    const newXp = Math.max((profile.xp || 0) - xpEarned, 0)
-    await supabase.from('profiles').update({ xp: newXp }).eq('id', user.id)
-    setProfile({ ...profile, xp: newXp })
+    const { data: updatedProfile } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+    setProfile({ ...profile, xp: updatedProfile?.xp ?? profile.xp })
 
     await loadSessions(user.id, showAllSessions)
   }
