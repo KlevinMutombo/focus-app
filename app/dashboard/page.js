@@ -32,6 +32,8 @@ export default function Dashboard() {
   const [justFinished, setJustFinished] = useState(null)
   const [expandedSession, setExpandedSession] = useState(null)
   const [showAllSessions, setShowAllSessions] = useState(false)
+  const [renamingSessionId, setRenamingSessionId] = useState(null)
+  const [renameValue, setRenameValue] = useState('')
   const intervalRef = useRef(null)
   const wasHiddenRef = useRef(false)
 
@@ -232,6 +234,26 @@ export default function Dashboard() {
     await loadSessions(user.id, showAllSessions)
   }
 
+  function startRename(session) {
+    setRenamingSessionId(session.id)
+    setRenameValue(session.label)
+  }
+
+  function cancelRename() {
+    setRenamingSessionId(null)
+    setRenameValue('')
+  }
+
+  async function saveRename(sessionId) {
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed.length > 100) return
+
+    await supabase.from('sessions').update({ label: trimmed }).eq('id', sessionId)
+    setRenamingSessionId(null)
+    setRenameValue('')
+    await loadSessions(user.id, showAllSessions)
+  }
+
   async function toggleShowAllSessions() {
     const next = !showAllSessions
     setShowAllSessions(next)
@@ -377,12 +399,31 @@ export default function Dashboard() {
 
               {isExpanded && (
                 <div style={{ marginTop: 8, paddingLeft: 4, fontSize: 12, color: 'var(--text-muted)' }}>
-                  {post ? (
+                  {renamingSessionId === s.id ? (
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                      <input
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        maxLength={100}
+                        style={{ flex: 1, fontSize: 12 }}
+                        autoFocus
+                      />
+                      <button onClick={() => saveRename(s.id)} style={{ fontSize: 11, padding: '4px 10px' }}>
+                        Save
+                      </button>
+                      <button onClick={cancelRename} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : post ? (
                     <>
                       <div style={{ marginBottom: 6 }}>
                         {post.is_private ? 'Private — only you can see this' : `Public — ${post.kudosCount || 0} boosts, ${post.commentsCount || 0} comments`}
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button onClick={() => startRename(s)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+                          Rename
+                        </button>
                         <button onClick={() => togglePostPrivacy(s.id)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
                           {post.is_private ? 'Make public' : 'Make private'}
                         </button>
@@ -397,9 +438,14 @@ export default function Dashboard() {
                   ) : (
                     <>
                       <div style={{ marginBottom: 6 }}>Removed from feed</div>
-                      <button onClick={() => deleteSession(s.id, s.xp_earned)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', color: 'var(--danger)' }}>
-                        Delete session
-                      </button>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button onClick={() => startRename(s)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>
+                          Rename
+                        </button>
+                        <button onClick={() => deleteSession(s.id, s.xp_earned)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', color: 'var(--danger)' }}>
+                          Delete session
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
