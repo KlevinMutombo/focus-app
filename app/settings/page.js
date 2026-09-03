@@ -24,6 +24,10 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
 
+  const [currentEmail, setCurrentEmail] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
@@ -42,6 +46,7 @@ export default function SettingsPage() {
         return
       }
       setUser(user)
+      setCurrentEmail(user.email || '')
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -113,6 +118,34 @@ export default function SettingsPage() {
     } else {
       setCurrentUsername(trimmed)
       setMessage('Username updated!')
+    }
+  }
+
+  async function handleEmailChange(e) {
+    e.preventDefault()
+    setEmailMessage('')
+
+    const trimmed = newEmail.trim().toLowerCase()
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailMessage('Enter a valid email address.')
+      return
+    }
+    if (trimmed === currentEmail.toLowerCase()) {
+      setEmailMessage("That's already your current email.")
+      return
+    }
+
+    const { error } = await supabase.auth.updateUser(
+      { email: trimmed },
+      { emailRedirectTo: `${window.location.origin}/settings` }
+    )
+
+    if (error) {
+      setEmailMessage(error.message)
+    } else {
+      setEmailMessage(`Confirmation link sent to ${trimmed}. Your email won't change until you click it.`)
+      setNewEmail('')
     }
   }
 
@@ -205,6 +238,25 @@ export default function SettingsPage() {
         </form>
 
         {message && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{message}</p>}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Email</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+          Current: <b style={{ color: 'var(--text)' }}>{currentEmail}</b>
+        </p>
+
+        <form onSubmit={handleEmailChange} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="New email address"
+          />
+          <button type="submit">Update Email</button>
+        </form>
+
+        {emailMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{emailMessage}</p>}
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
