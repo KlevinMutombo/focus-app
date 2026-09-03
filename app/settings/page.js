@@ -144,7 +144,7 @@ export default function SettingsPage() {
     if (error) {
       setEmailMessage(error.message)
     } else {
-      setEmailMessage(`Confirmation link sent to ${trimmed}. Your email won't change until you click it.`)
+      setEmailMessage(`Almost done — confirmation links were sent to both ${currentEmail} and ${trimmed}. Your email won't change until both are confirmed.`)
       setNewEmail('')
     }
   }
