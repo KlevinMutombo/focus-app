@@ -34,6 +34,9 @@ export default function SettingsPage() {
 
   const [blockedUsers, setBlockedUsers] = useState([])
 
+  const [identities, setIdentities] = useState([])
+  const [identitiesMessage, setIdentitiesMessage] = useState('')
+
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteMessage, setDeleteMessage] = useState('')
@@ -58,6 +61,7 @@ export default function SettingsPage() {
       setUsername(profile?.username || '')
 
       await loadBlockedUsers(user.id)
+      await loadIdentities()
 
       setLoading(false)
     }
@@ -75,6 +79,34 @@ export default function SettingsPage() {
   async function unblockUser(blockedId) {
     await supabase.from('blocked_users').delete().eq('blocker_id', user.id).eq('blocked_id', blockedId)
     await loadBlockedUsers(user.id)
+  }
+
+  async function loadIdentities() {
+    const { data, error } = await supabase.auth.getUserIdentities()
+    if (!error) {
+      setIdentities(data?.identities || [])
+    }
+  }
+
+  function providerLabel(provider) {
+    if (provider === 'email') return 'Email & Password'
+    if (provider === 'google') return 'Google'
+    return provider.charAt(0).toUpperCase() + provider.slice(1)
+  }
+
+  async function unlinkProvider(identity) {
+    setIdentitiesMessage('')
+    const confirmed = window.confirm(`Disconnect ${providerLabel(identity.provider)} from your account? You won't be able to sign in with it anymore.`)
+    if (!confirmed) return
+
+    const { error } = await supabase.auth.unlinkIdentity(identity)
+
+    if (error) {
+      setIdentitiesMessage(error.message)
+    } else {
+      setIdentitiesMessage(`${providerLabel(identity.provider)} disconnected.`)
+      await loadIdentities()
+    }
   }
 
   async function handleSave(e) {
@@ -282,6 +314,26 @@ export default function SettingsPage() {
         </form>
 
         {passwordMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{passwordMessage}</p>}
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h4 style={{ fontSize: 16, marginBottom: 12 }}>Connected Accounts</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
+          These are the ways you can sign in to Momenta.
+        </p>
+        {identities.map((identity) => (
+          <div key={identity.identity_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', fontSize: 13 }}>
+            <span>{providerLabel(identity.provider)}</span>
+            {identities.length > 1 ? (
+              <button onClick={() => unlinkProvider(identity)} className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', color: 'var(--danger)' }}>
+                Disconnect
+              </button>
+            ) : (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Only sign-in method</span>
+            )}
+          </div>
+        ))}
+        {identitiesMessage && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>{identitiesMessage}</p>}
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
