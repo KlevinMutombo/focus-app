@@ -248,7 +248,11 @@ export default function Dashboard() {
     const trimmed = renameValue.trim()
     if (!trimmed || trimmed.length > 100) return
 
-    await supabase.from('sessions').update({ label: trimmed }).eq('id', sessionId)
+    const { error } = await supabase.from('sessions').update({ label: trimmed }).eq('id', sessionId)
+    if (error) {
+      alert('Rename failed: ' + error.message)
+      return
+    }
     setRenamingSessionId(null)
     setRenameValue('')
     await loadSessions(user.id, showAllSessions)
